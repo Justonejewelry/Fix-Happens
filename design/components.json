@@ -1,0 +1,33 @@
+{
+  "CrystalCard": {
+    "surface": "surface",
+    "radius": 28,
+    "blur": 24,
+    "border": "border",
+    "shadow": "shadow"
+  },
+  "GlassButton": {
+    "primaryAccent": "accent",
+    "secondarySurface": "surface",
+    "radius": 18
+  },
+  "SearchBar": {
+    "surface": "surface",
+    "radius": 18,
+    "blur": 24
+  },
+  "Sidebar": {
+    "surface": "surface",
+    "radius": 28,
+    "width": 280
+  },
+  "EvidenceCard": {
+    "surface": "surface",
+    "radius": 24,
+    "blur": 24
+  },
+  "Timeline": {
+    "radius": 24,
+    "accent": "accent"
+  }
+}
