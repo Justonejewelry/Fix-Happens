@@ -4,28 +4,229 @@
   <meta charset="utf-8" />
   <title>Fix Happens</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 24px; }
-    .panel { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-    h1 { margin-top: 0; }
-    .muted { color: #666; }
-    pre { background: #f7f7f7; padding: 12px; border-radius: 8px; overflow: auto; }
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.14);
+      --glass-border: rgba(255, 255, 255, 0.34);
+      --glass-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+      --text: rgba(255, 255, 255, 0.96);
+      --muted: rgba(255, 255, 255, 0.72);
+      --accent: #ff5aa5;
+      --line: rgba(255, 255, 255, 0.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 90, 165, 0.22), transparent 28%),
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.16), transparent 22%),
+        linear-gradient(135deg, #0f1020 0%, #1a1230 45%, #2d143c 100%);
+      padding: 28px;
+    }
+
+    .shell {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+    }
+
+    .glass {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      border-radius: 28px;
+    }
+
+    .sidebar {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 88vh;
+    }
+
+    .brand {
+      padding: 18px;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .brand h1 { margin: 0 0 4px; font-size: 28px; }
+    .brand p { margin: 0; color: var(--muted); }
+
+    .nav {
+      display: grid;
+      gap: 10px;
+    }
+
+    .nav-item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(255, 90, 165, 0.32), rgba(255,255,255,0.12));
+      border-color: rgba(255, 90, 165, 0.5);
+    }
+
+    .content {
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .topbar h2 { margin: 0; font-size: 32px; }
+    .search {
+      flex: 1;
+      max-width: 520px;
+      padding: 14px 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.07);
+      color: var(--text);
+      outline: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      padding: 18px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.08);
+    }
+
+    .case { grid-column: span 7; }
+    .tests { grid-column: span 5; }
+    .stats { grid-column: span 12; }
+
+    .card h3 { margin: 0 0 10px; font-size: 22px; }
+    .muted { color: var(--muted); }
+
+    .test-list {
+      margin: 0;
+      padding-left: 18px;
+      line-height: 1.7;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.09);
+      color: var(--text);
+    }
+
+    .accent {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .footer {
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      padding: 6px 4px 0;
+    }
   </style>
 </head>
 <body>
-  <h1>Fix Happens</h1>
-  <p class="muted">Shit breaks. Fix Happens.</p>
+  <div class="shell">
+    <aside class="sidebar glass">
+      <div class="brand">
+        <h1>Fix Happens</h1>
+        <p>Shit breaks. Fix Happens.</p>
+      </div>
 
-  <div class="panel">
-    <h2>Current Case</h2>
-    <p>Wi-Fi connected but no internet</p>
-  </div>
+      <div class="nav">
+        <div class="nav-item active">Dashboard</div>
+        <div class="nav-item">Cases</div>
+        <div class="nav-item">Evidence</div>
+        <div class="nav-item">Knowledge</div>
+        <div class="nav-item">Assets</div>
+        <div class="nav-item">Settings</div>
+      </div>
+    </aside>
 
-  <div class="panel">
-    <h2>Recommended Next Tests</h2>
-    <pre>ping 8.8.8.8
-route -n get default
-ipconfig getifaddr en0
-networksetup -getinfo Wi-Fi</pre>
+    <main class="content glass">
+      <div class="topbar">
+        <div>
+          <h2>Dashboard</h2>
+          <div class="muted">Clear crystal UI · pink accent · soft blur · layered depth</div>
+        </div>
+        <input class="search" value="Search cases, commands, symptoms..." />
+      </div>
+
+      <section class="grid">
+        <div class="card case">
+          <h3>Current Case</h3>
+          <div class="accent">Wi-Fi connected but no internet</div>
+          <p class="muted">Device: MacBook Pro · Status: Diagnosing · Confidence: 94%</p>
+          <div class="pill-row">
+            <div class="pill">No route to host</div>
+            <div class="pill">No IP assigned</div>
+            <div class="pill">VPN inactive</div>
+          </div>
+        </div>
+
+        <div class="card tests">
+          <h3>Recommended Next Tests</h3>
+          <ol class="test-list">
+            <li>ping 8.8.8.8</li>
+            <li>route -n get default</li>
+            <li>ipconfig getifaddr en0</li>
+            <li>networksetup -getinfo Wi-Fi</li>
+          </ol>
+        </div>
+
+        <div class="card stats">
+          <h3>Diagnostic Snapshot</h3>
+          <div class="pill-row">
+            <div class="pill">DHCP Failure</div>
+            <div class="pill">Network Preference Corruption</div>
+            <div class="pill">DNS Failure</div>
+            <div class="pill">Repair verification pending</div>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">
+        <div>Liquid glass style applied across the macOS shell.</div>
+        <div>Clear crystal surfaces · pink highlights · frosted translucency</div>
+      </div>
+    </main>
   </div>
 </body>
 </html>
