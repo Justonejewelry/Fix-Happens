@@ -1,0 +1,9 @@
+{
+  "id": "example-network",
+  "name": "Example Network Diagnostics",
+  "version": "1.0.0",
+  "entryPoint": "index.js",
+  "supportedPlatforms": ["macos", "android"],
+  "permissions": ["network.read"],
+  "description": "Example diagnostic plugin for network cases"
+}
