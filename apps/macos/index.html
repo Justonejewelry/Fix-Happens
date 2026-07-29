@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Fix Happens</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 24px; }
+    .panel { border: 1px solid #ddd; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    h1 { margin-top: 0; }
+    .muted { color: #666; }
+    pre { background: #f7f7f7; padding: 12px; border-radius: 8px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>Fix Happens</h1>
+  <p class="muted">Shit breaks. Fix Happens.</p>
+
+  <div class="panel">
+    <h2>Current Case</h2>
+    <p>Wi-Fi connected but no internet</p>
+  </div>
+
+  <div class="panel">
+    <h2>Recommended Next Tests</h2>
+    <pre>ping 8.8.8.8
+route -n get default
+ipconfig getifaddr en0
+networksetup -getinfo Wi-Fi</pre>
+  </div>
+</body>
+</html>
