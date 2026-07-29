@@ -1,0 +1,11 @@
+{
+  "states": [
+    "OPEN",
+    "COLLECTING_EVIDENCE",
+    "TESTING",
+    "DIAGNOSING",
+    "REPAIRING",
+    "VERIFYING",
+    "CLOSED"
+  ]
+}
