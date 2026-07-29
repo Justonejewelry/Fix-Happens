@@ -1,0 +1,24 @@
+{
+  "wifi_connected_no_internet": {
+    "symptom": "Wi-Fi connected but no internet",
+    "tests": [
+      "ping 8.8.8.8",
+      "route -n get default",
+      "networksetup -listallhardwareports",
+      "networksetup -getinfo Wi-Fi",
+      "ipconfig getifaddr en0",
+      "ifconfig en0 | grep \"inet \""
+    ],
+    "likely_causes": [
+      "DHCP Failure",
+      "Network Preference Corruption",
+      "VPN Route Corruption",
+      "DNS Failure"
+    ],
+    "repairs": [
+      "Renew DHCP lease",
+      "Disable VPN and network extensions",
+      "Reset macOS network preferences"
+    ]
+  }
+}
