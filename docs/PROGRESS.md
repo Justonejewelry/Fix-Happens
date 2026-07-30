@@ -6,32 +6,28 @@ Last updated: 2026-07-30
 
 - [x] Monorepo foundation (apps / core / design / docs / knowledge / plugins)
 - [x] package.json + Electron entry (`npm start`)
-- [x] Shared `core/diagnosticEngine.js` + causes.json parity
+- [x] Shared `core/diagnosticEngine.js` + causes.json
 - [x] Clear Crystal Liquid Glass tokens + checklist + fallbacks
-- [x] macOS Case Workspace (3-column Liquid Glass UI)
-- [x] Durable JSON store (macOS) + SQLite store (Android)
-- [x] Knowledge packs + knowledge UI (macOS drawer + Android screen)
-- [x] Plugin system (loader / validator / registry / executor + IPC)
-- [x] **5 high-value diagnostic plugins** (printer, power-sleep, storage-disk, display-graphics, usb-peripheral)
-- [x] CaseArtifact v1 export
-- [x] Plugin + engine tests + CI workflow
+- [x] macOS Case Workspace (Liquid Glass UI, durable JSON store)
+- [x] Android Case Workspace + SQLite store + verification + photos
+- [x] Plugin system (loader / registry / executor / manifest validator)
+- [x] 6 diagnostic plugins (network, printer, power-sleep, storage, display, usb)
+- [x] Knowledge packs (6 domains) + contextual `getRelevantTips`
+- [x] macOS Field tips (plugin + knowledge) wired into case workspace
+- [x] Android Knowledge screen loads all packs from assets
+- [x] CaseArtifact export + plugin/knowledge tests in CI
 
 ## In progress / next
 
-- [ ] Wire plugin tips more deeply into Android case workspace
-- [ ] macOS SQLite migration (JSON remains production v1)
-- [ ] Additional knowledge packs matching the new plugin domains
-- [ ] Formal verification checklist parity across platforms
+- [ ] Android: surface contextual field tips inside case workspace
+- [ ] macOS SQLite migration (JSON store remains v1)
+- [ ] Plugin capability flags for future privileged actions
+- [ ] Remote / signed knowledge pack install (offline-first remains default)
 
-## Plugin inventory (6 total)
+## Verify
 
-| Plugin | Domain |
-|--------|--------|
-| `example-network` | Network (DHCP / DNS / VPN) |
-| `printer-diagnostics` | CUPS / offline / drivers |
-| `power-sleep` | Sleep / wake / battery / clamshell |
-| `storage-disk` | Space / APFS / SMART / I/O |
-| `display-graphics` | External monitors / GPU / scaling |
-| `usb-peripheral` | Hubs / HID / enumeration / sleep |
-
-Run `npm run test:plugins` to verify all six load and respond.
+```bash
+npm test
+npm start          # macOS — open Knowledge drawer; add evidence → Field tips appear
+cd apps/android && flutter run   # Knowledge tab shows 6 packs
+```
