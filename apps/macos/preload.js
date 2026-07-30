@@ -1,8 +1,7 @@
 /**
- * Electron preload — safe bridge to shared core engines.
- * Exposes only explicit APIs to the renderer (contextIsolation).
+ * Electron preload — core engine + durable DB bridge.
  */
-const { contextBridge } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 const path = require('path');
 
 let engine = null;
@@ -24,4 +23,19 @@ contextBridge.exposeInMainWorld('FixHappensCore', {
   hasEngine() {
     return !!engine;
   }
+});
+
+contextBridge.exposeInMainWorld('FixHappensDB', {
+  listOpenCases: () => ipcRenderer.invoke('db:listOpenCases'),
+  getCase: (id) => ipcRenderer.invoke('db:getCase', id),
+  createCase: (payload) => ipcRenderer.invoke('db:createCase', payload),
+  closeCase: (id, resolution) => ipcRenderer.invoke('db:closeCase', id, resolution),
+  addEvidence: (caseId, type, value) =>
+    ipcRenderer.invoke('db:addEvidence', caseId, type, value),
+  saveHypotheses: (caseId, ranked) =>
+    ipcRenderer.invoke('db:saveHypotheses', caseId, ranked),
+  getMeta: () => ipcRenderer.invoke('db:getMeta'),
+  updateMeta: (patch) => ipcRenderer.invoke('db:updateMeta', patch),
+  searchCases: (q) => ipcRenderer.invoke('db:searchCases', q),
+  available: true
 });
