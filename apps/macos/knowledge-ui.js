@@ -13,16 +13,48 @@
     'nc-port'
   ]);
 
+  const SCAN_TIPS = {
+    'local-interfaces': 'List interface addresses (ifconfig)',
+    'arp-table': 'Show ARP neighbors on the local LAN',
+    'route-default': 'Show the default gateway route',
+    'wifi-info': 'Wi-Fi service details via networksetup',
+    'airport-scan': 'Survey nearby SSIDs (airport -s)',
+    'ping-host': 'ICMP echo — uses Host field below',
+    'traceroute-host': 'Path to host — uses Host field',
+    'dns-lookup': 'Resolve host with dscacheutil',
+    'nc-port': 'TCP connect test — uses Host + Port'
+  };
+
+  const FIX_TIPS = {
+    'flush-dns-cache': 'Clear local DNS cache (dscacheutil)',
+    'renew-dhcp': 'Request a new DHCP lease on the interface',
+    'set-dns-cloudflare': 'Set Wi-Fi DNS to 1.1.1.1 / 1.0.0.1',
+    'set-dns-google': 'Set Wi-Fi DNS to 8.8.8.8 / 8.8.4.4',
+    'set-dns-dhcp': 'Restore DNS servers from DHCP',
+    'wifi-power-cycle': 'Toggle Wi-Fi power off, then on',
+    'disable-web-proxy': 'Turn off HTTP proxy on the service',
+    'disable-secure-proxy': 'Turn off HTTPS proxy on the service',
+    'cancel-all-print-jobs': 'Clear all local CUPS print jobs',
+    'network-quality': 'Read-only throughput / latency sample',
+    'show-dns': 'Show configured DNS servers',
+    'purge-user-caches-hint': 'Measure size of ~/Library/Caches'
+  };
+
   function el(id) {
     return document.getElementById(id);
   }
 
   function escapeHtml(s) {
     return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"');
+  }
+
+  function tipAttr(planId, fallback) {
+    const tip = SCAN_TIPS[planId] || FIX_TIPS[planId] || fallback || planId;
+    return ' data-tip="' + escapeHtml(tip) + '" data-tip-pos="below"';
   }
 
   function activeCaseId() {
@@ -45,8 +77,8 @@
       '<div class="kd-backdrop" id="kdBackdrop"></div>' +
       '<aside class="kd-panel glass" role="dialog" aria-label="Knowledge">' +
       '  <div class="kd-head">' +
-      '    <div class="kd-title"><span class="kd-icon">📚</span> Knowledge packs</div>' +
-      '    <button type="button" class="btn" id="kdClose">Close</button>' +
+      '    <div class="kd-title" data-tip="Offline knowledge packs for field tips"><span class="kd-icon">📚</span> Knowledge packs</div>' +
+      '    <button type="button" class="btn" id="kdClose" data-tip="Close knowledge drawer">Close</button>' +
       '  </div>' +
       '  <div class="kd-body" id="kdBody"><div class="empty-state">Loading…</div></div>' +
       '</aside>';
@@ -135,8 +167,13 @@
           const tips = (p.tips || []).map((t) => '<li>' + escapeHtml(t) + '</li>').join('');
           const causes = (p.relatedCauses || []).join(', ');
           const cat = p.category ? ' · ' + escapeHtml(p.category) : '';
+          const packTip = escapeHtml(
+            (p.title || p.id) + (causes ? ' — ' + causes : '')
+          );
           return (
-            '<div class="kd-pack">' +
+            '<div class="kd-pack" data-tip="' +
+            packTip +
+            '" data-tip-pos="left">' +
             '<h4>' +
             escapeHtml(p.title || p.id) +
             '</h4>' +
@@ -225,7 +262,9 @@
             return (
               '<div class="' +
               cls +
-              '"><strong>' +
+              '" data-tip="From ' +
+              escapeHtml(t.label) +
+              '" data-tip-pos="below"><strong>' +
               escapeHtml(t.label) +
               '</strong>' +
               escapeHtml(t.text) +
@@ -244,7 +283,7 @@
 
   function privToggleHtml(enabled, id) {
     return (
-      '<label class="priv-toggle">' +
+      '<label class="priv-toggle" data-tip="Opt-in allowlisted local commands only" data-tip-pos="left">' +
       '<input type="checkbox" id="' +
       id +
       '" ' +
@@ -289,17 +328,17 @@
       '<div class="scan-params">' +
       '<input id="scanHost" type="text" placeholder="Host (e.g. 1.1.1.1)" value="' +
       escapeHtml(prevHost || '1.1.1.1') +
-      '"/>' +
+      '" data-tip="Target host for ping, traceroute, DNS, port check" data-tip-pos="below"/>' +
       '<input id="scanPort" type="text" placeholder="Port" value="' +
       escapeHtml(prevPort || '443') +
-      '" style="max-width:90px"/>' +
+      '" style="max-width:90px" data-tip="TCP port for Port check" data-tip-pos="below"/>' +
       '</div>';
 
     if (!scans.length && !status.enabled) {
       return (
         '<div id="scanPanel">' +
         '<div class="scan-head">' +
-        '<div class="scan-title">Privileged scans</div>' +
+        '<div class="scan-title" data-tip="Allowlisted read-only network diagnostics">Privileged scans</div>' +
         privToggleHtml(status.enabled, 'privScanToggle') +
         '</div>' +
         '<div style="font-size:11.5px;color:var(--muted)">' +
@@ -312,11 +351,16 @@
       .slice(0, 10)
       .map((s, i) => {
         const label = s.label || s.planId;
+        const disabled = status.enabled
+          ? ''
+          : ' disabled data-tip="Enable privileged mode first"';
+        const tip = status.enabled ? tipAttr(s.planId, label) : '';
         return (
           '<button type="button" class="scan-btn" data-scan-idx="' +
           i +
-          '" ' +
-          (status.enabled ? '' : 'disabled title="Enable privileged mode first"') +
+          '"' +
+          tip +
+          disabled +
           '>' +
           escapeHtml(label) +
           '</button>'
@@ -329,7 +373,7 @@
     return (
       '<div id="scanPanel">' +
       '<div class="scan-head">' +
-      '<div class="scan-title">Privileged scans</div>' +
+      '<div class="scan-title" data-tip="Allowlisted read-only network diagnostics">Privileged scans</div>' +
       privToggleHtml(status.enabled, 'privScanToggle') +
       '</div>' +
       paramRow +
@@ -358,7 +402,6 @@
       fixes.push(s);
     }
 
-    // Always surface safe boosters when enabled
     if (status.enabled) {
       for (const extra of [
         { planId: 'flush-dns-cache', label: 'Flush DNS' },
@@ -388,7 +431,7 @@
       return (
         '<div id="fixPanel">' +
         '<div class="fix-head">' +
-        '<div class="fix-title">Apply fix (auto-remediation)</div>' +
+        '<div class="fix-title" data-tip="Allowlisted auto-remediation plans">Apply fix (auto-remediation)</div>' +
         privToggleHtml(status.enabled, 'privFixToggle') +
         '</div>' +
         '<div style="font-size:11.5px;color:var(--muted)">' +
@@ -401,11 +444,16 @@
       .slice(0, 10)
       .map((s, i) => {
         const label = s.label || s.planId;
+        const disabled = status.enabled
+          ? ''
+          : ' disabled data-tip="Enable privileged mode first"';
+        const tip = status.enabled ? tipAttr(s.planId, label) : '';
         return (
           '<button type="button" class="fix-btn" data-fix-idx="' +
           i +
-          '" ' +
-          (status.enabled ? '' : 'disabled title="Enable privileged mode first"') +
+          '"' +
+          tip +
+          disabled +
           '>' +
           escapeHtml(label) +
           '</button>'
@@ -418,10 +466,10 @@
     return (
       '<div id="fixPanel">' +
       '<div class="fix-head">' +
-      '<div class="fix-title">Apply fix (auto-remediation)</div>' +
+      '<div class="fix-title" data-tip="Allowlisted auto-remediation plans">Apply fix (auto-remediation)</div>' +
       privToggleHtml(status.enabled, 'privFixToggle') +
       '</div>' +
-      '<div class="fix-warn">Allowlisted plans only · no sudo · attaches result as case evidence</div>' +
+      '<div class="fix-warn" data-tip="Fixed catalog only · spawn with shell:false · no sudo">Allowlisted plans only · no sudo · attaches result as case evidence</div>' +
       '<div class="fix-actions">' +
       buttons +
       '</div>' +
@@ -500,7 +548,6 @@
     const toggle = el('privFixToggle');
     if (toggle) {
       toggle.onchange = async () => {
-        // Share the same privileged preference as scans
         if (!S) return;
         try {
           await S.setEnabled(!!toggle.checked);
