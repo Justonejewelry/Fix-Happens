@@ -40,23 +40,11 @@ class _CaseListScreenState extends State<CaseListScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      // load() may still have recovered seed data on corrupt JSON
-      try {
-        final list = await _store.load();
-        if (!mounted) return;
-        setState(() {
-          _cases = list;
-          _loading = false;
-          _error = e.toString();
-        });
-      } catch (e2) {
-        if (!mounted) return;
-        setState(() {
-          _loading = false;
-          _error = e2.toString();
-          _cases = [];
-        });
-      }
+      setState(() {
+        _loading = false;
+        _error = e.toString();
+        _cases = [];
+      });
     }
   }
 
@@ -95,12 +83,10 @@ class _CaseListScreenState extends State<CaseListScreen> {
     );
     if (symptom == null || symptom.isEmpty) return;
     try {
-      final created = _store.create(symptom: symptom);
-      _cases = [..._cases, created];
-      await _store.save(_cases);
+      final created = await _store.create(symptom: symptom);
       if (!mounted) return;
-      setState(() {});
       await _openCase(created);
+      await _reload();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -117,19 +103,9 @@ class _CaseListScreenState extends State<CaseListScreen> {
       MaterialPageRoute(
         builder: (_) => CaseWorkspaceScreen(
           caseRecord: c,
-          onChanged: (updated) async {
-            final i = _cases.indexWhere((x) => x.id == updated.id);
-            if (i >= 0) _cases[i] = updated;
-            try {
-              await _store.save(_cases);
-            } catch (e) {
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Save failed: $e')),
-                );
-              }
-            }
-            if (mounted) setState(() {});
+          store: _store,
+          onChanged: (_) async {
+            await _reload();
           },
         ),
       ),
