@@ -1,9 +1,7 @@
 /**
  * Network Scan & Mapping plugin.
- * Pure function: returns suggestions only (no shell execution).
- *
- * Helps field techs map LAN topology, discover hosts, check path/ports,
- * and interpret scan-style evidence (ARP, traceroute, nmap notes, mDNS).
+ * Pure diagnose(): suggestions + recommended allowlisted scan plan IDs.
+ * Actual execution is performed only by core/scanRunner.js when privileged mode is on.
  */
 
 function diagnose(context) {
@@ -14,6 +12,7 @@ function diagnose(context) {
   const hypotheses = [];
   const tips = [];
   const nextTests = [];
+  const recommendedScans = [];
 
   const isScanContext =
     /scan|map|discover|topology|subnet|arp|nmap|traceroute|tracepath|ping sweep|host list|port |ports |mdns|bonjour|vlan|wireless survey|site survey|neighbors/.test(
@@ -33,6 +32,8 @@ function diagnose(context) {
     tips.push(
       'A sparse ARP table often means the local subnet is quiet or ICMP is filtered — try directed pings before concluding devices are offline.'
     );
+    recommendedScans.push({ planId: 'arp-table', label: 'Run ARP table' });
+    recommendedScans.push({ planId: 'local-interfaces', label: 'List interfaces' });
   }
 
   // --- Subnet / topology unknown ---
@@ -48,6 +49,9 @@ function diagnose(context) {
     tips.push(
       'Start from the local interface: IP, mask, and default gateway define the first hop of any map.'
     );
+    recommendedScans.push({ planId: 'local-interfaces', label: 'List interfaces' });
+    recommendedScans.push({ planId: 'route-default', label: 'Default route' });
+    recommendedScans.push({ planId: 'wifi-info', label: 'Wi-Fi info' });
   }
 
   // --- Path / traceroute / latency ---
@@ -62,6 +66,13 @@ function diagnose(context) {
     tips.push(
       'Compare traceroute to the gateway vs the target; a clean first hop with later drops points past the local LAN.'
     );
+    recommendedScans.push({ planId: 'route-default', label: 'Default route' });
+    // Host-parameterized plans need a concrete target from the tech in the UI
+    recommendedScans.push({
+      planId: 'ping-host',
+      params: { host: '1.1.1.1' },
+      label: 'Ping 1.1.1.1'
+    });
   }
 
   // --- Port / service reachability ---
@@ -76,6 +87,11 @@ function diagnose(context) {
     tips.push(
       'Distinguish host-down (no ARP/ping) from port-filtered (host up, service closed). Note both in evidence.'
     );
+    recommendedScans.push({
+      planId: 'nc-port',
+      params: { host: '127.0.0.1', port: 80 },
+      label: 'Check local :80'
+    });
   }
 
   // --- mDNS / Bonjour / local discovery ---
@@ -86,6 +102,8 @@ function diagnose(context) {
     tips.push(
       'mDNS fails across VLANs or when client isolation / AP multicast filtering is on — map L2 domains before blaming the device.'
     );
+    recommendedScans.push({ planId: 'arp-table', label: 'ARP neighbors' });
+    recommendedScans.push({ planId: 'local-interfaces', label: 'List interfaces' });
   }
 
   // --- VLAN / L2 isolation ---
@@ -96,6 +114,8 @@ function diagnose(context) {
     tips.push(
       'If ARP never completes for a same-subnet IP, suspect VLAN mismatch or AP client isolation before Layer-3 tools.'
     );
+    recommendedScans.push({ planId: 'arp-table', label: 'ARP table' });
+    recommendedScans.push({ planId: 'local-interfaces', label: 'List interfaces' });
   }
 
   // --- Wireless survey / RF mapping ---
@@ -105,11 +125,15 @@ function diagnose(context) {
     )
   ) {
     hypotheses.push({ cause: 'Wireless Coverage / RF Issue', confidenceBoost: 15 });
-    nextTests.push('/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -s');
+    nextTests.push(
+      '/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -s'
+    );
     nextTests.push('networksetup -getairportnetwork en0');
     tips.push(
       'Capture SSID, BSSID, channel, and RSSI at the failure location — a map without RF context is incomplete for Wi-Fi cases.'
     );
+    recommendedScans.push({ planId: 'airport-scan', label: 'Wi-Fi survey' });
+    recommendedScans.push({ planId: 'wifi-info', label: 'Wi-Fi info' });
   }
 
   // --- Duplicate IP / conflict ---
@@ -120,6 +144,7 @@ function diagnose(context) {
     tips.push(
       'Conflicting MACs for one IP in ARP (or flapping) almost always means two devices share an address — fix DHCP reservation or static config.'
     );
+    recommendedScans.push({ planId: 'arp-table', label: 'ARP table' });
   }
 
   // --- Generic scan/map entry point ---
@@ -131,26 +156,44 @@ function diagnose(context) {
     tips.push(
       'Baseline map: local IP/mask → default gateway → ARP neighbors → traceroute to key targets.'
     );
+    recommendedScans.push({ planId: 'local-interfaces', label: 'List interfaces' });
+    recommendedScans.push({ planId: 'arp-table', label: 'ARP table' });
+    recommendedScans.push({ planId: 'route-default', label: 'Default route' });
   }
 
-  // Deduplicate nextTests while preserving order
-  const seen = new Set();
+  // Deduplicate nextTests
+  const seenT = new Set();
   const uniqueTests = [];
   for (const t of nextTests) {
-    if (!seen.has(t)) {
-      seen.add(t);
+    if (!seenT.has(t)) {
+      seenT.add(t);
       uniqueTests.push(t);
     }
   }
 
-  return { hypotheses, tips, nextTests: uniqueTests };
+  // Deduplicate recommendedScans by planId+JSON params
+  const seenS = new Set();
+  const uniqueScans = [];
+  for (const s of recommendedScans) {
+    const key = s.planId + ':' + JSON.stringify(s.params || {});
+    if (seenS.has(key)) continue;
+    seenS.add(key);
+    uniqueScans.push(s);
+  }
+
+  return {
+    hypotheses,
+    tips,
+    nextTests: uniqueTests,
+    recommendedScans: uniqueScans
+  };
 }
 
 module.exports = {
   id: 'network-scan-map',
   name: 'Network Scan & Mapping',
-  version: '1.0.0',
+  version: '1.1.0',
   description:
-    'Suggests host discovery, topology, path, port, mDNS, VLAN, and wireless survey steps from scan/map evidence',
+    'Suggests host discovery, topology, path, port, mDNS, VLAN, and wireless survey steps; recommends allowlisted scan plans',
   diagnose
 };

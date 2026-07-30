@@ -1,6 +1,7 @@
 /**
  * Run registered plugins against a diagnostic context.
  * Plugins return soft suggestions; they do not mutate the case store.
+ * Optional recommendedScans are plan IDs for the allowlisted scan runner.
  */
 
 const registry = require('./pluginRegistry');
@@ -15,7 +16,7 @@ const registry = require('./pluginRegistry');
 
 /**
  * @param {DiagnoseContext} context
- * @returns {Array<{pluginId:string, hypotheses?:object[], tips?:string[], nextTests?:string[], error?:string}>}
+ * @returns {Array<{pluginId:string, hypotheses?:object[], tips?:string[], nextTests?:string[], recommendedScans?:object[], error?:string}>}
  */
 function runAll(context) {
   const results = [];
@@ -33,11 +34,21 @@ function runAll(context) {
     if (!plugin) continue;
     try {
       const out = plugin.diagnose(safeContext) || {};
+      const recommendedScans = Array.isArray(out.recommendedScans)
+        ? out.recommendedScans
+            .filter((s) => s && typeof s.planId === 'string')
+            .map((s) => ({
+              planId: String(s.planId),
+              params: s.params && typeof s.params === 'object' ? s.params : {},
+              label: s.label ? String(s.label) : undefined
+            }))
+        : [];
       results.push({
         pluginId: plugin.id,
         hypotheses: Array.isArray(out.hypotheses) ? out.hypotheses : [],
         tips: Array.isArray(out.tips) ? out.tips : [],
-        nextTests: Array.isArray(out.nextTests) ? out.nextTests : []
+        nextTests: Array.isArray(out.nextTests) ? out.nextTests : [],
+        recommendedScans
       });
     } catch (e) {
       results.push({
@@ -45,6 +56,7 @@ function runAll(context) {
         hypotheses: [],
         tips: [],
         nextTests: [],
+        recommendedScans: [],
         error: e.message || String(e)
       });
     }
