@@ -18,6 +18,8 @@ jobs:
         run: node core/diagnosticEngine.test.js
       - name: Plugin system tests
         run: node core/pluginSystem.test.js
+      - name: Scan runner tests
+        run: node core/scanRunner.test.js
 
   package-json:
     runs-on: ubuntu-latest

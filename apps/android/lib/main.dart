@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'screens/home_shell.dart';
+import 'services/diagnostic_engine.dart';
+import 'services/field_tips_service.dart';
 
-void main() => runApp(const FixHappensApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await DiagnosticEngine.ensureLoaded();
+  await FieldTipsService.ensureLoaded();
+  runApp(const FixHappensApp());
+}
 
 const Color kAccent = Color(0xFFFF5AA5);
 const Color kBg = Color(0xFF111427);

@@ -4,7 +4,13 @@
   const P = window.FixHappensPlugins;
   const X = window.FixHappensExport;
   const S = window.FixHappensScan;
-  const DB = window.FixHappensDB;
+
+  const PARAM_PLANS = new Set([
+    'ping-host',
+    'traceroute-host',
+    'dns-lookup',
+    'nc-port'
+  ]);
 
   function el(id) {
     return document.getElementById(id);
@@ -22,6 +28,12 @@
     const badge = el('caseBadge');
     const idMatch = badge && badge.textContent.match(/#(\S+)/);
     return idMatch ? idMatch[1] : null;
+  }
+
+  function readScanParams() {
+    const host = (el('scanHost') && el('scanHost').value.trim()) || '';
+    const port = (el('scanPort') && el('scanPort').value.trim()) || '';
+    return { host, port };
   }
 
   function ensureDrawer() {
@@ -63,6 +75,9 @@
       'background:rgba(60,140,100,.08);}' +
       '#scanPanel .scan-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}' +
       '#scanPanel .scan-title{font-weight:700;font-size:13px;color:#b8f0d0;}' +
+      '#scanPanel .scan-params{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;}' +
+      '#scanPanel .scan-params input{flex:1;min-width:120px;padding:6px 10px;border-radius:10px;' +
+      'border:1px solid rgba(120,200,160,.3);background:rgba(0,0,0,.25);color:#e8fff2;font-size:12px;}' +
       '#scanPanel .scan-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}' +
       '#scanPanel button.scan-btn{font-size:11.5px;padding:6px 10px;border-radius:10px;' +
       'border:1px solid rgba(120,200,160,.35);background:rgba(80,160,120,.2);color:#d8ffe8;cursor:pointer;}' +
@@ -146,6 +161,10 @@
       hero.parentNode.insertBefore(host, hero.nextSibling);
     }
 
+    // Preserve param fields across re-render if present
+    const prevHost = el('scanHost') ? el('scanHost').value : '1.1.1.1';
+    const prevPort = el('scanPort') ? el('scanPort').value : '443';
+
     const symptom = el('symptom')?.textContent || '';
     const evidence = [...document.querySelectorAll('#evidenceList .evidence-item')].map(
       (n) => n.innerText
@@ -209,12 +228,12 @@
           .join('');
     }
 
-    html += await renderScanPanel(recommended);
+    html += await renderScanPanel(recommended, prevHost, prevPort);
     host.innerHTML = html;
     wireScanButtons();
   }
 
-  async function renderScanPanel(recommended) {
+  async function renderScanPanel(recommended, prevHost, prevPort) {
     if (!S || !S.available) return '';
 
     let status = { enabled: false, available: true };
@@ -231,9 +250,31 @@
       scans.push(s);
     }
 
-    // Always offer baseline plans when panel is shown with scan context
-    if (!scans.length) {
-      // still show toggle + note when no recommendations
+    // Always include common parameterized plans when enabled
+    if (status.enabled) {
+      for (const extra of [
+        { planId: 'ping-host', label: 'Ping host' },
+        { planId: 'traceroute-host', label: 'Traceroute' },
+        { planId: 'dns-lookup', label: 'DNS lookup' },
+        { planId: 'nc-port', label: 'Port check' },
+        { planId: 'arp-table', label: 'ARP table' },
+        { planId: 'local-interfaces', label: 'Interfaces' }
+      ]) {
+        if (!scans.some((s) => s.planId === extra.planId)) scans.push(extra);
+      }
+    }
+
+    const paramRow =
+      '<div class="scan-params">' +
+      '<input id="scanHost" type="text" placeholder="Host (e.g. 1.1.1.1)" value="' +
+      escapeHtml(prevHost || '1.1.1.1') +
+      '"/>' +
+      '<input id="scanPort" type="text" placeholder="Port" value="' +
+      escapeHtml(prevPort || '443') +
+      '" style="max-width:90px"/>' +
+      '</div>';
+
+    if (!scans.length && !status.enabled) {
       return (
         '<div id="scanPanel">' +
         '<div class="scan-head">' +
@@ -241,15 +282,13 @@
         privToggleHtml(status.enabled) +
         '</div>' +
         '<div style="font-size:11.5px;color:var(--muted)">' +
-        (status.enabled
-          ? 'No recommended scans for current evidence. Add scan/map keywords or pick a plan from the catalog later.'
-          : 'Enable to run allowlisted read-only network diagnostics (ARP, ifconfig, ping, …). Off by default.') +
+        'Enable to run allowlisted read-only network diagnostics. Off by default.' +
         '</div></div>'
       );
     }
 
     const buttons = scans
-      .slice(0, 8)
+      .slice(0, 10)
       .map((s, i) => {
         const label = s.label || s.planId;
         return (
@@ -264,8 +303,7 @@
       })
       .join('');
 
-    // stash for click handlers
-    window.__fhScanRecs = scans.slice(0, 8);
+    window.__fhScanRecs = scans.slice(0, 10);
 
     return (
       '<div id="scanPanel">' +
@@ -273,6 +311,7 @@
       '<div class="scan-title">Privileged scans</div>' +
       privToggleHtml(status.enabled) +
       '</div>' +
+      paramRow +
       '<div class="scan-actions">' +
       buttons +
       '</div>' +
@@ -290,6 +329,16 @@
       ' Enable' +
       '</label>'
     );
+  }
+
+  function mergeParams(rec) {
+    const ui = readScanParams();
+    const params = Object.assign({}, rec.params || {});
+    if (PARAM_PLANS.has(rec.planId)) {
+      if (ui.host) params.host = ui.host;
+      if (rec.planId === 'nc-port' && ui.port) params.port = Number(ui.port) || ui.port;
+    }
+    return params;
   }
 
   function wireScanButtons() {
@@ -318,9 +367,10 @@
           out.textContent = 'Running ' + rec.planId + '…';
         }
         try {
+          const params = mergeParams(rec);
           const result = await S.run({
             planId: rec.planId,
-            params: rec.params || {},
+            params,
             caseId: activeCaseId()
           });
           if (out) {
@@ -335,7 +385,6 @@
               .filter(Boolean)
               .join('\n');
           }
-          // Refresh evidence list if app exposes a reload hook
           if (result.attachedEvidence && typeof window.reloadActiveCase === 'function') {
             window.reloadActiveCase();
           }
