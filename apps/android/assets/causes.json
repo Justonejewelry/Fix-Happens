@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "causes": {
     "DHCP Failure": {
       "base": 40,
@@ -37,6 +37,36 @@
       "nextTest": "sudo pfctl -s rules",
       "category": "network"
     },
+    "Incomplete Host Discovery": {
+      "base": 18,
+      "keywords": ["arp", "empty arp", "no hosts", "ping sweep", "host list", "neighbor"],
+      "nextTest": "arp -a",
+      "category": "network"
+    },
+    "Path / Routing Anomaly": {
+      "base": 16,
+      "keywords": ["traceroute", "packet loss", "high rtt", "hop", "blackhole", "latency"],
+      "nextTest": "traceroute -n 1.1.1.1",
+      "category": "network"
+    },
+    "Port / Service Unreachable": {
+      "base": 14,
+      "keywords": ["port", "filtered", "connection refused", "connection timed out", "nmap", "closed port"],
+      "nextTest": "nc -vz <host> <port>",
+      "category": "network"
+    },
+    "VLAN / L2 Isolation": {
+      "base": 15,
+      "keywords": ["vlan", "client isolation", "guest network", "wrong vlan", "layer 2"],
+      "nextTest": "arp -a",
+      "category": "network"
+    },
+    "Duplicate IP Address": {
+      "base": 22,
+      "keywords": ["duplicate ip", "ip conflict", "address conflict", "gratuitous arp"],
+      "nextTest": "arp -a",
+      "category": "network"
+    },
     "Printer Offline": {
       "base": 35,
       "keywords": ["printer", "offline", "print queue", "cups", "laserjet", "spool"],
@@ -54,12 +84,21 @@
       "keywords": ["sleep", "wake", "power nap", "battery", "clamshell"],
       "nextTest": "pmset -g",
       "category": "power"
+    },
+    "Disk Space Critical": {
+      "base": 28,
+      "keywords": ["disk full", "no space", "storage full", "df -h", "volume full"],
+      "nextTest": "df -h",
+      "category": "storage"
     }
   },
   "boosts": [
     { "when": ["no route to host"], "cause": "DHCP Failure", "add": 20 },
     { "when": ["vpn"], "cause": "VPN Route Corruption", "add": 25 },
     { "when": ["no ip", "no ipv4"], "cause": "DHCP Failure", "add": 25 },
-    { "when": ["printer", "offline"], "cause": "Printer Offline", "add": 20 }
+    { "when": ["printer", "offline"], "cause": "Printer Offline", "add": 20 },
+    { "when": ["empty arp", "no hosts"], "cause": "Incomplete Host Discovery", "add": 18 },
+    { "when": ["duplicate ip", "ip conflict"], "cause": "Duplicate IP Address", "add": 20 },
+    { "when": ["disk full", "no space"], "cause": "Disk Space Critical", "add": 22 }
   ]
 }
