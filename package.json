@@ -1,7 +1,7 @@
 {
   "name": "fix-happens",
-  "version": "0.8.5",
-  "description": "Cross-platform field diagnostic system. Shit breaks. Fix Happens.",
+  "version": "0.8.7",
+  "description": "Shit breaks. Fix Happens. Cross-platform field diagnostic system for macOS (Electron) and Android (Flutter): structured cases, evidence, ranked hypotheses, verification checklists, offline-first field workflow, Clear Crystal Liquid Glass UI.",
   "main": "apps/macos/main.js",
   "scripts": {
     "start": "electron .",
@@ -14,15 +14,31 @@
   "keywords": [
     "diagnostics",
     "troubleshooting",
-    "macos",
+    "electron",
+    "flutter",
     "android",
+    "macos",
     "field-service",
-    "liquid-glass"
+    "liquid-glass",
+    "offline-first",
+    "IT-support",
+    "hypothesis-ranking",
+    "case-management"
   ],
-  "author": "Justonejewelry",
+  "author": {
+    "name": "Justonejewelry",
+    "url": "https://github.com/Justonejewelry"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Justonejewelry/Fix-Happens.git"
+    "url": "git+https://github.com/Justonejewelry/Fix-Happens.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Justonejewelry/Fix-Happens/issues"
+  },
+  "homepage": "https://github.com/Justonejewelry/Fix-Happens#readme",
+  "engines": {
+    "node": ">=18"
   }
 }
