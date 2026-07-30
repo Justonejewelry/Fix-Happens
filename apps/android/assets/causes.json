@@ -3,7 +3,7 @@
   "causes": {
     "DHCP Failure": {
       "base": 40,
-      "keywords": ["no ip", "no ipv4", "dhcp", "no address", "lease", "en0", "no route to host"],
+      "keywords": ["no ip", "no ipv4", "dhcp", "no address", "lease", "en0", "no route to host", "169.254", "self-assigned"],
       "nextTest": "ipconfig getifaddr en0",
       "category": "network"
     },
@@ -13,10 +13,22 @@
       "nextTest": "nslookup apple.com",
       "category": "network"
     },
+    "Stale / Misconfigured DNS": {
+      "base": 22,
+      "keywords": ["stale cache", "flush dns", "wrong dns", "misconfigured dns", "dns cache"],
+      "nextTest": "networksetup -getdnsservers Wi-Fi",
+      "category": "network"
+    },
     "VPN Route Corruption": {
       "base": 15,
       "keywords": ["vpn", "utun", "route corruption", "tunnel", "no route"],
       "nextTest": "route -n get default",
+      "category": "network"
+    },
+    "Proxy / VPN Residue": {
+      "base": 18,
+      "keywords": ["proxy", "http proxy", "https proxy", "pac", "wpdas", "leftover proxy"],
+      "nextTest": "networksetup -getwebproxy Wi-Fi",
       "category": "network"
     },
     "Network Preference Corruption": {
@@ -29,6 +41,18 @@
       "base": 20,
       "keywords": ["interface down", "en0 down", "link down", "media: none"],
       "nextTest": "ifconfig en0",
+      "category": "network"
+    },
+    "Wi-Fi Link Instability": {
+      "base": 17,
+      "keywords": ["wifi drop", "intermittent", "reconnect", "weak signal", "keeps disconnecting"],
+      "nextTest": "networksetup -getairportnetwork en0",
+      "category": "network"
+    },
+    "Network Performance Degradation": {
+      "base": 14,
+      "keywords": ["slow", "latency", "boost", "throughput", "sluggish", "network quality"],
+      "nextTest": "ping -c 10 1.1.1.1",
       "category": "network"
     },
     "Firewall Block": {
@@ -90,15 +114,25 @@
       "keywords": ["disk full", "no space", "storage full", "df -h", "volume full"],
       "nextTest": "df -h",
       "category": "storage"
+    },
+    "User Cache Pressure": {
+      "base": 12,
+      "keywords": ["cache", "purge", "library caches", "slow mac"],
+      "nextTest": "du -sh ~/Library/Caches",
+      "category": "system"
     }
   },
   "boosts": [
     { "when": ["no route to host"], "cause": "DHCP Failure", "add": 20 },
     { "when": ["vpn"], "cause": "VPN Route Corruption", "add": 25 },
     { "when": ["no ip", "no ipv4"], "cause": "DHCP Failure", "add": 25 },
+    { "when": ["169.254", "self-assigned"], "cause": "DHCP Failure", "add": 22 },
     { "when": ["printer", "offline"], "cause": "Printer Offline", "add": 20 },
     { "when": ["empty arp", "no hosts"], "cause": "Incomplete Host Discovery", "add": 18 },
     { "when": ["duplicate ip", "ip conflict"], "cause": "Duplicate IP Address", "add": 20 },
-    { "when": ["disk full", "no space"], "cause": "Disk Space Critical", "add": 22 }
+    { "when": ["disk full", "no space"], "cause": "Disk Space Critical", "add": 22 },
+    { "when": ["stale cache", "flush dns"], "cause": "Stale / Misconfigured DNS", "add": 18 },
+    { "when": ["proxy"], "cause": "Proxy / VPN Residue", "add": 18 },
+    { "when": ["slow", "boost", "latency"], "cause": "Network Performance Degradation", "add": 12 }
   ]
 }
