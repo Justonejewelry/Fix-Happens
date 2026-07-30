@@ -88,6 +88,15 @@ function wireIpc() {
     return knowledge.loadKnowledgePack(name);
   });
 
+  ipcMain.handle('knowledge:relevant', (_e, context) => {
+    if (!knowledge || typeof knowledge.getRelevantTips !== 'function') return [];
+    try {
+      return knowledge.getRelevantTips(context || {});
+    } catch (e) {
+      return [];
+    }
+  });
+
   ipcMain.handle('plugins:list', () => {
     if (!pluginRegistry) return [];
     return pluginRegistry.list();

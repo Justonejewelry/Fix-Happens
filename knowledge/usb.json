@@ -1,0 +1,24 @@
+{
+  "id": "usb-basics",
+  "title": "USB & peripheral diagnostics",
+  "version": 1,
+  "category": "usb",
+  "tips": [
+    "`system_profiler SPUSBDataType` shows the full USB tree and power draw.",
+    "Bus-powered hubs often fail when too many devices draw current.",
+    "Devices that disappear after sleep are classic USB selective suspend issues.",
+    "Test the same device on another port and another machine before blaming the peripheral.",
+    "Thunderbolt docks need the correct firmware and a direct (non-hub) connection."
+  ],
+  "relatedCauses": [
+    "USB Device Not Enumerated",
+    "USB Hub Power Issue",
+    "Keyboard / Mouse Conflict",
+    "USB Sleep Disconnect",
+    "Thunderbolt / Dock Failure",
+    "Driver / Kext Conflict"
+  ],
+  "keywords": [
+    "usb", "keyboard", "mouse", "hub", "peripheral", "thunderbolt", "dock", "device not recognized", "external"
+  ]
+}

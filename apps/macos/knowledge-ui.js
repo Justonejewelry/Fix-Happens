@@ -1,4 +1,4 @@
-/* Knowledge drawer + plugin tip strip + CaseArtifact export (macOS) */
+/* Knowledge drawer + contextual field tips (knowledge + plugins) + CaseArtifact export */
 (function () {
   const K = window.FixHappensKnowledge;
   const P = window.FixHappensPlugins;
@@ -37,10 +37,12 @@
       '.kd-pack h4{margin:0 0 6px;font-size:14px;}' +
       '.kd-pack .meta{font-size:11px;color:var(--muted);margin-bottom:8px;}' +
       '.kd-pack li{margin:0 0 4px;font-size:12.5px;color:var(--muted);}' +
-      '#pluginTips{margin-top:12px;}' +
-      '.plugin-tip{padding:8px 10px;border-radius:12px;border:1px solid rgba(255,90,165,.25);' +
+      '#fieldTips{margin-top:12px;}' +
+      '.field-tip{padding:8px 10px;border-radius:12px;border:1px solid rgba(255,90,165,.25);' +
       'background:rgba(255,90,165,.08);font-size:12.5px;margin-bottom:6px;color:var(--muted);}' +
-      '.plugin-tip strong{color:#ffc2dc;font-size:11px;display:block;margin-bottom:2px;}';
+      '.field-tip strong{color:#ffc2dc;font-size:11px;display:block;margin-bottom:2px;}' +
+      '.field-tip.knowledge{border-color:rgba(120,180,255,.3);background:rgba(80,140,255,.08);}' +
+      '.field-tip.knowledge strong{color:#a8c8ff;}';
     document.head.appendChild(style);
 
     el('kdClose').onclick = closeDrawer;
@@ -79,6 +81,7 @@
         .map((p) => {
           const tips = (p.tips || []).map((t) => '<li>' + escapeHtml(t) + '</li>').join('');
           const causes = (p.relatedCauses || []).join(', ');
+          const cat = p.category ? ' · ' + escapeHtml(p.category) : '';
           return (
             '<div class="kd-pack">' +
             '<h4>' +
@@ -86,6 +89,7 @@
             '</h4>' +
             '<div class="meta">v' +
             escapeHtml(String(p.version || 1)) +
+            cat +
             (causes ? ' · ' + escapeHtml(causes) : '') +
             '</div>' +
             (tips ? '<ul style="margin:0;padding-left:18px">' + tips + '</ul>' : '') +
@@ -106,59 +110,88 @@
       .replace(/"/g, '&quot;');
   }
 
-  async function refreshPluginTips() {
-    let host = el('pluginTips');
+  /**
+   * Combine plugin tips + contextual knowledge tips under the case hero.
+   */
+  async function refreshFieldTips() {
+    let host = el('fieldTips');
     if (!host) {
-      const hero = document.querySelector('.case-hero .hero-actions') || document.querySelector('.case-hero');
+      const hero =
+        document.querySelector('.case-hero .hero-actions') ||
+        document.querySelector('.case-hero');
       if (!hero) return;
       host = document.createElement('div');
-      host.id = 'pluginTips';
+      host.id = 'fieldTips';
       host.style.width = '100%';
       hero.parentNode.insertBefore(host, hero.nextSibling);
-    }
-    if (!P || !P.available) {
-      host.innerHTML = '';
-      return;
     }
 
     const symptom = el('symptom')?.textContent || '';
     const evidence = [...document.querySelectorAll('#evidenceList .evidence-item')].map(
       (n) => n.innerText
     );
-    try {
-      const results = await P.run({
-        symptom,
-        evidence,
-        platform: 'macos',
-        device: el('deviceBadge')?.textContent || ''
-      });
-      const tips = [];
-      for (const r of results || []) {
-        if (r.error) continue;
-        for (const t of r.tips || []) {
-          tips.push({ plugin: r.pluginId, text: t });
+    const context = {
+      symptom,
+      evidence,
+      platform: 'macos',
+      device: el('deviceBadge')?.textContent || ''
+    };
+
+    const items = [];
+
+    // Plugin tips
+    if (P && P.available) {
+      try {
+        const results = await P.run(context);
+        for (const r of results || []) {
+          if (r.error) continue;
+          for (const t of r.tips || []) {
+            items.push({ source: 'plugin', label: r.pluginId, text: t });
+          }
         }
-      }
-      if (!tips.length) {
-        host.innerHTML = '';
-        return;
-      }
-      host.innerHTML =
-        '<div class="section-head" style="margin-top:8px">Plugin tips</div>' +
-        tips
-          .slice(0, 5)
-          .map(
-            (t) =>
-              '<div class="plugin-tip"><strong>' +
-              escapeHtml(t.plugin) +
-              '</strong>' +
-              escapeHtml(t.text) +
-              '</div>'
-          )
-          .join('');
-    } catch (_) {
-      host.innerHTML = '';
+      } catch (_) {}
     }
+
+    // Knowledge pack tips (contextual)
+    if (K && K.available && typeof K.relevant === 'function') {
+      try {
+        const relevant = await K.relevant({
+          symptom,
+          evidence
+        });
+        for (const r of relevant || []) {
+          items.push({
+            source: 'knowledge',
+            label: r.packTitle || r.packId,
+            text: r.tip
+          });
+        }
+      } catch (_) {}
+    }
+
+    if (!items.length) {
+      host.innerHTML = '';
+      return;
+    }
+
+    // Prefer a mix; cap at 6
+    const shown = items.slice(0, 6);
+    host.innerHTML =
+      '<div class="section-head" style="margin-top:8px">Field tips</div>' +
+      shown
+        .map((t) => {
+          const cls = t.source === 'knowledge' ? 'field-tip knowledge' : 'field-tip';
+          return (
+            '<div class="' +
+            cls +
+            '"><strong>' +
+            escapeHtml(t.label) +
+            '</strong>' +
+            escapeHtml(t.text) +
+            '</div>'
+          );
+        })
+        .join('');
   }
 
   async function exportActiveCase() {
@@ -207,18 +240,17 @@
     }
   }
 
-  // Observe evidence list + symptom for tip refresh
   function observe() {
     const list = el('evidenceList');
     if (list) {
-      new MutationObserver(() => refreshPluginTips()).observe(list, {
+      new MutationObserver(() => refreshFieldTips()).observe(list, {
         childList: true,
         subtree: true
       });
     }
     const sym = el('symptom');
     if (sym) {
-      new MutationObserver(() => refreshPluginTips()).observe(sym, {
+      new MutationObserver(() => refreshFieldTips()).observe(sym, {
         characterData: true,
         childList: true,
         subtree: true
@@ -231,18 +263,18 @@
       ensureDrawer();
       wireNav();
       observe();
-      setTimeout(refreshPluginTips, 600);
+      setTimeout(refreshFieldTips, 600);
     });
   } else {
     ensureDrawer();
     wireNav();
     observe();
-    setTimeout(refreshPluginTips, 600);
+    setTimeout(refreshFieldTips, 600);
   }
 
   window.FixHappensKnowledgeUI = {
     open: openDrawer,
-    refreshTips: refreshPluginTips,
+    refreshTips: refreshFieldTips,
     exportCase: exportActiveCase
   };
 })();

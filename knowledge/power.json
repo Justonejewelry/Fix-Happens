@@ -1,0 +1,24 @@
+{
+  "id": "power-basics",
+  "title": "Power & sleep diagnostics",
+  "version": 1,
+  "category": "power",
+  "tips": [
+    "`pmset -g assertions` reveals which process is preventing sleep.",
+    "Clamshell mode requires power + external display + external keyboard/mouse.",
+    "Sudden wake can come from Power Nap, Bluetooth, or network activity.",
+    "Battery cycle count and condition live in System Settings → Battery → Battery Health.",
+    "SMC reset is a last resort after ruling out apps holding power assertions."
+  ],
+  "relatedCauses": [
+    "Power / Sleep Issue",
+    "Sleep Prevention Assertion",
+    "Battery Health Degradation",
+    "Clamshell Mode Conflict",
+    "Power Nap Interference",
+    "SMC / Power Management Reset Needed"
+  ],
+  "keywords": [
+    "sleep", "wake", "battery", "power", "clamshell", "pmset", "power nap", "lid", "hibernate"
+  ]
+}

@@ -43,6 +43,7 @@ contextBridge.exposeInMainWorld('FixHappensDB', {
 contextBridge.exposeInMainWorld('FixHappensKnowledge', {
   list: () => ipcRenderer.invoke('knowledge:list'),
   get: (name) => ipcRenderer.invoke('knowledge:get', name),
+  relevant: (context) => ipcRenderer.invoke('knowledge:relevant', context),
   available: true
 });
 

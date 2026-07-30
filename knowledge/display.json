@@ -1,0 +1,24 @@
+{
+  "id": "display-basics",
+  "title": "Display & graphics diagnostics",
+  "version": 1,
+  "category": "display",
+  "tips": [
+    "`system_profiler SPDisplaysDataType` lists connected displays and GPU state.",
+    "Black screen on external monitor is often EDID / handshake — try a different cable or port.",
+    "GPU hangs appear as brief freezes then recovery; check Console for IOAccelerator messages.",
+    "Scaled resolutions (HiDPI) can look soft or fail on older displays.",
+    "True Tone and Night Shift rarely cause black screens but can confuse brightness complaints."
+  ],
+  "relatedCauses": [
+    "External Display Handshake Failure",
+    "GPU Hang / Reset",
+    "Resolution / Scaling Mismatch",
+    "Display Cable / Port Issue",
+    "Brightness / True Tone Conflict",
+    "No Internal Display Signal"
+  ],
+  "keywords": [
+    "display", "monitor", "black screen", "resolution", "gpu", "brightness", "external", "hdmi", "displayport", "night shift"
+  ]
+}
