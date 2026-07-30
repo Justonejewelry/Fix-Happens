@@ -2,6 +2,14 @@
 
 **Shit breaks. Fix Happens.**
 
+[![Release](https://img.shields.io/github/v/release/Justonejewelry/Fix-Happens?style=for-the-badge&color=ff5aa5&label=Release&logo=github)](https://github.com/Justonejewelry/Fix-Happens/releases)
+[![Version](https://img.shields.io/badge/version-1.2.1-ff5aa5?style=for-the-badge&logo=semver&logoColor=white)](CHANGELOG.md)
+[![CI](https://img.shields.io/github/actions/workflow/status/Justonejewelry/Fix-Happens/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/Justonejewelry/Fix-Happens/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/Justonejewelry/Fix-Happens?style=for-the-badge&color=5affe0)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Android-c44dff?style=for-the-badge&logo=apple&logoColor=white)](docs/RUN.md)
+[![Electron](https://img.shields.io/badge/Electron-33-47848F?style=for-the-badge&logo=electron&logoColor=white)](apps/macos)
+[![Flutter](https://img.shields.io/badge/Flutter-field%20companion-02569B?style=for-the-badge&logo=flutter&logoColor=white)](apps/android)
+
 Cross-platform **Field Diagnostic Operating System** for technicians and support engineers.  
 Turn vague symptoms into structured cases: evidence → ranked hypotheses → recommended tests → verification → closed knowledge.
 
