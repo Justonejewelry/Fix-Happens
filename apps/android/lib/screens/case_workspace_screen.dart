@@ -9,15 +9,6 @@ import '../services/case_store.dart';
 import '../services/diagnostic_engine.dart';
 import '../widgets/crystal_card.dart';
 
-const Color kAccent = Color(0xFFFF5AA5);
-
-const _verificationLabels = <String, String>{
-  'evidence_recorded': 'Evidence recorded',
-  'hypotheses_scored': 'Hypotheses scored',
-  'next_test_executed': 'Next test executed',
-  'repair_verified': 'Repair verified',
-};
-
 class CaseWorkspaceScreen extends StatefulWidget {
   const CaseWorkspaceScreen({
     super.key,
@@ -121,12 +112,24 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
     await showModalBottomSheet<void>(
       context: context,
       backgroundColor: const Color(0xFF1C2033),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(99),
+              ),
+            ),
             ListTile(
-              leading: const Icon(Icons.photo_camera, color: kAccent),
+              leading: const Icon(Icons.photo_camera_rounded, color: kAccent),
               title: const Text('Take photo'),
               onTap: () {
                 Navigator.pop(ctx);
@@ -134,13 +137,14 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.photo_library, color: kAccent),
+              leading: const Icon(Icons.photo_library_rounded, color: kAccent),
               title: const Text('Choose from gallery'),
               onTap: () {
                 Navigator.pop(ctx);
                 _addPhoto(ImageSource.gallery);
               },
             ),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -152,17 +156,25 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1C2033),
-        title: const Text('Close case?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.task_alt_rounded, color: kAccent),
+            SizedBox(width: 8),
+            Text('Close case?'),
+          ],
+        ),
         content: Text('Close #${_case.id} — ${_case.symptom}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Cancel'),
           ),
-          FilledButton(
+          FilledButton.icon(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: kAccent),
-            child: const Text('Close'),
+            icon: const Icon(Icons.check, size: 18),
+            label: const Text('Close'),
           ),
         ],
       ),
@@ -188,160 +200,277 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
     }
   }
 
+  Future<void> _copyAllEvidence() async {
+    final text = _case.evidence.join('\n');
+    if (text.isEmpty) return;
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Evidence copied')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ranked = _hypotheses;
     final top = ranked.isNotEmpty ? ranked.first : null;
+    final done = _case.verificationDone;
 
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF111427), Color(0xFF261233), Color(0xFF1B1A2E)],
-        ),
-      ),
+    return AppGradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          title: Text('Case #${_case.id}'),
+          title: Row(
+            children: [
+              const Icon(Icons.assignment_outlined, color: kAccent, size: 22),
+              const SizedBox(width: 8),
+              Text('Case #${_case.id}'),
+            ],
+          ),
           actions: [
-            TextButton(
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_horiz_rounded),
+              color: const Color(0xFF1C2033),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              onSelected: (v) {
+                if (v == 'copy') _copyAllEvidence();
+                if (v == 'photo') _photoMenu();
+                if (v == 'close') _closeCase();
+              },
+              itemBuilder: (_) => [
+                const PopupMenuItem(
+                  value: 'photo',
+                  child: ListTile(
+                    dense: true,
+                    leading: Icon(Icons.add_a_photo_outlined, color: kAccent),
+                    title: Text('Add photo'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'copy',
+                  child: ListTile(
+                    dense: true,
+                    leading: Icon(Icons.copy_all_rounded, color: Colors.white70),
+                    title: Text('Copy evidence'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'close',
+                  child: ListTile(
+                    dense: true,
+                    leading: Icon(Icons.close_rounded, color: Colors.white70),
+                    title: Text('Close case'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+            TextButton.icon(
               onPressed: _case.closed ? null : _closeCase,
-              child: const Text('Close'),
+              icon: const Icon(Icons.task_alt_rounded, size: 18),
+              label: const Text('Close'),
             ),
           ],
         ),
         body: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
           children: [
+            // Hero
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    _case.symptom,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: kAccent,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${_case.device} · ${_case.status}',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.7),
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Verification',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.65),
-                          fontSize: 12,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _case.symptom,
+                              style: const TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFFFF8EC4),
+                                height: 1.25,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              children: [
+                                StatusPill(
+                                  _case.status,
+                                  accent: true,
+                                  icon: Icons.timelapse_rounded,
+                                ),
+                                StatusPill(
+                                  _case.device,
+                                  icon: Icons.devices_rounded,
+                                ),
+                                if (top != null)
+                                  StatusPill(
+                                    '${top.confidence}%',
+                                    icon: Icons.insights_rounded,
+                                  ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        '${_case.verificationDone} / ${_case.verificationTotal}',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.65),
-                          fontSize: 12,
-                        ),
+                      const SizedBox(width: 12),
+                      Column(
+                        children: [
+                          VerificationRing(
+                            progress: _case.verificationProgress,
+                            label: '$done/4',
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Verification',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.white.withOpacity(0.5),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(999),
-                    child: LinearProgressIndicator(
-                      value: _case.verificationProgress,
-                      minHeight: 6,
-                      backgroundColor: Colors.white12,
-                      color: kAccent,
-                    ),
-                  ),
                   if (top != null) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     Text(
-                      'Next: ${top.nextTest}',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      'Next test',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withOpacity(0.5),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
-                      'Confidence ${top.confidence}%',
-                      style: TextStyle(color: Colors.white.withOpacity(0.65)),
+                      top.nextTest,
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13.5,
+                      ),
                     ),
                     const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: FilledButton(
-                        onPressed: () async {
-                          await Clipboard.setData(
-                            ClipboardData(text: top.nextTest),
-                          );
-                          setState(() {
-                            _case.verification['next_test_executed'] = true;
-                          });
-                          _notify();
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Command copied')),
-                          );
-                        },
-                        style: FilledButton.styleFrom(
-                          backgroundColor: kAccent.withOpacity(0.4),
+                    FilledButton.icon(
+                      onPressed: () async {
+                        await Clipboard.setData(
+                          ClipboardData(text: top.nextTest),
+                        );
+                        setState(() {
+                          _case.verification['next_test_executed'] = true;
+                        });
+                        _notify();
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Command copied')),
+                        );
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: kAccent.withOpacity(0.45),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
                         ),
-                        child: const Text('Copy next test'),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
+                      icon: const Icon(Icons.play_arrow_rounded),
+                      label: const Text('Copy next test'),
                     ),
                   ],
                   if (_case.pills.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _case.pills.map((p) => ChipLabel(p)).toList(),
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: _case.pills
+                          .map((p) => ChipLabel(p, icon: Icons.sell_outlined))
+                          .toList(),
                     ),
                   ],
+                  const SizedBox(height: 14),
+                  StepStrip(doneCount: done),
                 ],
               ),
             ),
             const SizedBox(height: 14),
+
+            // Verification checklist
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SectionTitle('Verification'),
-                  ..._verificationLabels.entries.map((e) {
-                    final done = _case.verification[e.key] ?? false;
+                  const SectionTitle(
+                    'Verification',
+                    icon: Icons.verified_outlined,
+                  ),
+                  ...{
+                    'evidence_recorded': ('Evidence recorded', Icons.description_outlined),
+                    'hypotheses_scored': ('Hypotheses scored', Icons.insights_outlined),
+                    'next_test_executed': ('Next test executed', Icons.play_circle_outline),
+                    'repair_verified': ('Repair verified', Icons.task_alt_rounded),
+                  }.entries.map((e) {
+                    final doneItem = _case.verification[e.key] ?? false;
                     return InkWell(
                       onTap: () => _toggleCheck(e.key),
+                      borderRadius: BorderRadius.circular(12),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Row(
                           children: [
-                            Icon(
-                              done
-                                  ? Icons.check_box
-                                  : Icons.check_box_outline_blank,
-                              color: done ? kAccent : Colors.white38,
-                              size: 22,
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 180),
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                gradient: doneItem
+                                    ? const LinearGradient(
+                                        colors: [kAccent, kAccent2],
+                                      )
+                                    : null,
+                                border: doneItem
+                                    ? null
+                                    : Border.all(color: Colors.white30),
+                                color: doneItem ? null : Colors.transparent,
+                              ),
+                              child: doneItem
+                                  ? const Icon(Icons.check,
+                                      size: 14, color: Colors.white)
+                                  : null,
                             ),
                             const SizedBox(width: 10),
+                            Icon(e.value.$2,
+                                size: 16,
+                                color: doneItem ? kAccent : Colors.white38),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                e.value,
+                                e.value.$1,
                                 style: TextStyle(
-                                  color: done
+                                  color: doneItem
                                       ? Colors.white
                                       : Colors.white.withOpacity(0.7),
+                                  fontWeight: doneItem
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
                                 ),
                               ),
                             ),
@@ -354,11 +483,13 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
               ),
             ),
             const SizedBox(height: 14),
+
+            // Hypotheses
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SectionTitle('Hypotheses'),
+                  const SectionTitle('Hypotheses', icon: Icons.insights_outlined),
                   if (ranked.isEmpty)
                     Text(
                       'Add evidence to rank causes',
@@ -367,18 +498,21 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                   else
                     ...ranked.map((h) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.only(bottom: 12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
+                                const Icon(Icons.bubble_chart_outlined,
+                                    size: 15, color: kAccent),
+                                const SizedBox(width: 6),
                                 Expanded(child: Text(h.cause)),
                                 Text(
                                   '${h.confidence}%',
                                   style: const TextStyle(
                                     color: kAccent,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ],
@@ -388,7 +522,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                               borderRadius: BorderRadius.circular(999),
                               child: LinearProgressIndicator(
                                 value: h.confidence / 100,
-                                minHeight: 5,
+                                minHeight: 6,
                                 backgroundColor: Colors.white12,
                                 color: kAccent,
                               ),
@@ -401,19 +535,20 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
               ),
             ),
             const SizedBox(height: 14),
+
+            // Evidence
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      const Expanded(child: SectionTitle('Evidence')),
-                      IconButton(
-                        tooltip: 'Add photo',
-                        onPressed: _photoMenu,
-                        icon: const Icon(Icons.add_a_photo, color: kAccent),
-                      ),
-                    ],
+                  SectionTitle(
+                    'Evidence',
+                    icon: Icons.description_outlined,
+                    trailing: IconButton(
+                      tooltip: 'Add photo',
+                      onPressed: _photoMenu,
+                      icon: const Icon(Icons.add_a_photo_rounded, color: kAccent),
+                    ),
                   ),
                   if (_case.photoPaths.isNotEmpty) ...[
                     SizedBox(
@@ -455,7 +590,22 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                     ..._case.evidence.map(
                       (e) => Padding(
                         padding: const EdgeInsets.only(bottom: 8),
-                        child: Text(e, style: const TextStyle(height: 1.35)),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              e.startsWith('Screenshot')
+                                  ? Icons.image_outlined
+                                  : Icons.notes_rounded,
+                              size: 14,
+                              color: kAccent.withOpacity(0.8),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(e, style: const TextStyle(height: 1.35)),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   const SizedBox(height: 8),
@@ -467,6 +617,8 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                           style: const TextStyle(fontSize: 14),
                           decoration: InputDecoration(
                             hintText: 'Add evidence note…',
+                            prefixIcon: const Icon(Icons.edit_note_rounded,
+                                color: Colors.white38),
                             filled: true,
                             fillColor: Colors.white.withOpacity(0.06),
                             border: OutlineInputBorder(
@@ -481,12 +633,20 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      FilledButton(
+                      FilledButton.icon(
                         onPressed: _addEvidence,
                         style: FilledButton.styleFrom(
-                          backgroundColor: kAccent.withOpacity(0.35),
+                          backgroundColor: kAccent.withOpacity(0.4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
-                        child: const Text('Add'),
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Add'),
                       ),
                     ],
                   ),
@@ -494,11 +654,16 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
               ),
             ),
             const SizedBox(height: 14),
+
+            // Commands
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SectionTitle('Commands'),
+                  const SectionTitle(
+                    'Commands',
+                    icon: Icons.terminal_rounded,
+                  ),
                   ...[
                     'ping 8.8.8.8',
                     'route -n get default',
@@ -507,35 +672,53 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                   ].map(
                     (cmd) => Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              cmd,
-                              style: const TextStyle(
-                                fontFamily: 'monospace',
-                                fontSize: 13,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.04),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.chevron_right_rounded,
+                                size: 16, color: kAccent),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                cmd,
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 12.5,
+                                ),
                               ),
                             ),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              await Clipboard.setData(ClipboardData(text: cmd));
-                              if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Copied')),
-                              );
-                            },
-                            child: const Text('Copy'),
-                          ),
-                        ],
+                            TextButton.icon(
+                              onPressed: () async {
+                                await Clipboard.setData(ClipboardData(text: cmd));
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Copied')),
+                                );
+                              },
+                              icon: const Icon(Icons.copy_rounded, size: 14),
+                              label: const Text('Copy'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.white70,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
           ],
         ),
       ),
