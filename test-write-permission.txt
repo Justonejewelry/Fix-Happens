@@ -1,0 +1,2 @@
+Permission test - safe to delete
+Checked: 2026-07-30
