@@ -1,6 +1,6 @@
 {
   "name": "fix-happens",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "Cross-platform field diagnostic system. Shit breaks. Fix Happens.",
   "main": "apps/macos/main.js",
   "scripts": {
