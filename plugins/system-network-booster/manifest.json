@@ -1,0 +1,10 @@
+{
+  "id": "system-network-booster",
+  "name": "System & Network Booster",
+  "version": "1.0.0",
+  "entryPoint": "index.js",
+  "supportedPlatforms": ["macos", "darwin"],
+  "permissions": [],
+  "capabilities": ["suggest", "scan", "fix"],
+  "description": "Comprehensive network health, DNS/proxy hygiene, Wi-Fi cycle, and system performance boost recommendations with allowlisted auto-fixes"
+}
