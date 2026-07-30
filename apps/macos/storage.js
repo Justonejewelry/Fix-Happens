@@ -6,21 +6,49 @@
   const KEY_EVIDENCE = 'fixhappens.evidence.v1';
   const KEY_SOLID = 'fixhappens.solid.v1';
   const KEY_CASE = 'fixhappens.activeCase.v1';
+  const KEY_CASES = 'fixhappens.cases.v1';
 
-  const defaults = [
+  const defaultEvidence = [
     'Wi-Fi shows connected, no internet access',
     'no route to host',
     'VPN was used earlier today'
   ];
 
+  const defaultCases = {
+    '1042': {
+      symptom: 'Wi-Fi connected but no internet',
+      meta: 'Seed case · Asset: MacBook Pro 16\" · Platform: macOS',
+      device: 'MacBook Pro',
+      status: 'Diagnosing',
+      pills: ['No route to host', 'No IP assigned', 'VPN inactive'],
+      closed: false
+    },
+    '1038': {
+      symptom: 'Printer offline after sleep',
+      meta: 'Seed case · Asset: Office LaserJet · Platform: macOS',
+      device: 'LaserJet',
+      status: 'Investigating',
+      pills: ['USB sleep', 'Driver timeout'],
+      closed: false
+    },
+    '1031': {
+      symptom: 'VPN drops every 10 min',
+      meta: 'Seed case · Asset: MacBook Air · Platform: macOS',
+      device: 'MacBook Air',
+      status: 'Testing',
+      pills: ['IKEv2', 'Keepalive'],
+      closed: false
+    }
+  };
+
   function loadEvidence() {
     try {
       const raw = localStorage.getItem(KEY_EVIDENCE);
-      if (!raw) return defaults.slice();
+      if (!raw) return defaultEvidence.slice();
       const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) && parsed.length ? parsed : defaults.slice();
+      return Array.isArray(parsed) && parsed.length ? parsed : defaultEvidence.slice();
     } catch (_) {
-      return defaults.slice();
+      return defaultEvidence.slice();
     }
   }
 
@@ -58,12 +86,31 @@
     } catch (_) {}
   }
 
+  function loadCases() {
+    try {
+      const raw = localStorage.getItem(KEY_CASES);
+      if (!raw) return JSON.parse(JSON.stringify(defaultCases));
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' ? parsed : JSON.parse(JSON.stringify(defaultCases));
+    } catch (_) {
+      return JSON.parse(JSON.stringify(defaultCases));
+    }
+  }
+
+  function saveCases(map) {
+    try {
+      localStorage.setItem(KEY_CASES, JSON.stringify(map));
+    } catch (_) {}
+  }
+
   global.FixHappensStorage = {
     loadEvidence,
     saveEvidence,
     loadSolid,
     saveSolid,
     loadActiveCase,
-    saveActiveCase
+    saveActiveCase,
+    loadCases,
+    saveCases
   };
 })(window);
