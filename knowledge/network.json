@@ -1,0 +1,11 @@
+{
+  "id": "network-basics",
+  "title": "Network diagnostics pack",
+  "version": 1,
+  "tips": [
+    "Confirm link status before DHCP assumptions.",
+    "Compare ping to gateway vs public IP to separate LAN vs WAN.",
+    "VPN clients often steal default routes — check utun interfaces."
+  ],
+  "relatedCauses": ["DHCP Failure", "DNS Failure", "VPN Route Corruption", "Interface Down"]
+}

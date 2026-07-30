@@ -1,0 +1,11 @@
+{
+  "id": "print-basics",
+  "title": "Printer diagnostics pack",
+  "version": 1,
+  "tips": [
+    "Check CUPS queue pauses before reinstalling drivers.",
+    "USB sleep can drop printers — test after wake.",
+    "lpstat -p shows printer acceptance state."
+  ],
+  "relatedCauses": ["Printer Offline", "Driver Timeout"]
+}

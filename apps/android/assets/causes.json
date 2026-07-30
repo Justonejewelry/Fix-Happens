@@ -1,0 +1,65 @@
+{
+  "version": 2,
+  "causes": {
+    "DHCP Failure": {
+      "base": 40,
+      "keywords": ["no ip", "no ipv4", "dhcp", "no address", "lease", "en0", "no route to host"],
+      "nextTest": "ipconfig getifaddr en0",
+      "category": "network"
+    },
+    "DNS Failure": {
+      "base": 25,
+      "keywords": ["dns", "resolve", "nxdomain", "cannot resolve", "name resolution"],
+      "nextTest": "nslookup apple.com",
+      "category": "network"
+    },
+    "VPN Route Corruption": {
+      "base": 15,
+      "keywords": ["vpn", "utun", "route corruption", "tunnel", "no route"],
+      "nextTest": "route -n get default",
+      "category": "network"
+    },
+    "Network Preference Corruption": {
+      "base": 30,
+      "keywords": ["preference", "networksetup", "plist", "configd", "preferences"],
+      "nextTest": "networksetup -getinfo Wi-Fi",
+      "category": "network"
+    },
+    "Interface Down": {
+      "base": 20,
+      "keywords": ["interface down", "en0 down", "link down", "media: none"],
+      "nextTest": "ifconfig en0",
+      "category": "network"
+    },
+    "Firewall Block": {
+      "base": 10,
+      "keywords": ["firewall", "pf", "blocked", "deny"],
+      "nextTest": "sudo pfctl -s rules",
+      "category": "network"
+    },
+    "Printer Offline": {
+      "base": 35,
+      "keywords": ["printer", "offline", "print queue", "cups", "laserjet", "spool"],
+      "nextTest": "lpstat -p",
+      "category": "print"
+    },
+    "Driver Timeout": {
+      "base": 25,
+      "keywords": ["driver", "timeout", "usb sleep", "kext"],
+      "nextTest": "system_profiler SPUSBDataType",
+      "category": "hardware"
+    },
+    "Power / Sleep Issue": {
+      "base": 20,
+      "keywords": ["sleep", "wake", "power nap", "battery", "clamshell"],
+      "nextTest": "pmset -g",
+      "category": "power"
+    }
+  },
+  "boosts": [
+    { "when": ["no route to host"], "cause": "DHCP Failure", "add": 20 },
+    { "when": ["vpn"], "cause": "VPN Route Corruption", "add": 25 },
+    { "when": ["no ip", "no ipv4"], "cause": "DHCP Failure", "add": 25 },
+    { "when": ["printer", "offline"], "cause": "Printer Offline", "add": 20 }
+  ]
+}
