@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Fix Happens</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fix Happens — Case Workspace</title>
   <style>
     :root {
       --glass-bg: rgba(255, 255, 255, 0.14);
@@ -12,6 +13,8 @@
       --muted: rgba(255, 255, 255, 0.72);
       --accent: #ff5aa5;
       --line: rgba(255, 255, 255, 0.16);
+      --surface: rgba(255, 255, 255, 0.08);
+      --surface-strong: rgba(255, 255, 255, 0.12);
     }
 
     * { box-sizing: border-box; }
@@ -19,21 +22,22 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
       color: var(--text);
       background:
         radial-gradient(circle at top left, rgba(255, 90, 165, 0.22), transparent 28%),
-        radial-gradient(circle at top right, rgba(255, 255, 255, 0.16), transparent 22%),
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.14), transparent 22%),
         linear-gradient(135deg, #0f1020 0%, #1a1230 45%, #2d143c 100%);
-      padding: 28px;
+      padding: 20px;
     }
 
     .shell {
-      max-width: 1440px;
+      max-width: 1600px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 280px 1fr;
-      gap: 20px;
+      grid-template-columns: 260px 1fr 340px;
+      gap: 18px;
+      min-height: calc(100vh - 40px);
     }
 
     .glass {
@@ -45,125 +49,330 @@
       border-radius: 28px;
     }
 
+    /* ── Left sidebar ── */
     .sidebar {
-      padding: 18px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-      min-height: 88vh;
+      gap: 12px;
     }
 
     .brand {
-      padding: 18px;
+      padding: 16px;
       border-radius: 22px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.08);
+      background: var(--surface-strong);
     }
 
-    .brand h1 { margin: 0 0 4px; font-size: 28px; }
-    .brand p { margin: 0; color: var(--muted); }
+    .brand h1 {
+      margin: 0 0 4px;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
 
     .nav {
       display: grid;
-      gap: 10px;
+      gap: 8px;
+      flex: 1;
     }
 
     .nav-item {
-      padding: 14px 16px;
-      border-radius: 18px;
+      padding: 12px 14px;
+      border-radius: 16px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.06);
+      background: var(--surface);
       color: var(--text);
+      font-size: 14px;
+      cursor: default;
+      transition: background 0.15s ease, border-color 0.15s ease;
     }
 
     .nav-item.active {
-      background: linear-gradient(135deg, rgba(255, 90, 165, 0.32), rgba(255,255,255,0.12));
-      border-color: rgba(255, 90, 165, 0.5);
+      background: linear-gradient(135deg, rgba(255, 90, 165, 0.32), rgba(255, 255, 255, 0.10));
+      border-color: rgba(255, 90, 165, 0.55);
     }
 
-    .content {
-      padding: 22px;
-      display: grid;
-      gap: 18px;
+    .sidebar-footer {
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ── Center workspace ── */
+    .workspace {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow: auto;
     }
 
     .topbar {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       gap: 16px;
     }
 
-    .topbar h2 { margin: 0; font-size: 32px; }
-    .search {
-      flex: 1;
-      max-width: 520px;
-      padding: 14px 18px;
-      border-radius: 18px;
+    .topbar h2 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .badge {
+      padding: 6px 12px;
+      border-radius: 999px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.07);
+      background: var(--surface);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .badge.accent {
+      color: var(--accent);
+      border-color: rgba(255, 90, 165, 0.45);
+      background: rgba(255, 90, 165, 0.15);
+      font-weight: 600;
+    }
+
+    .search {
+      min-width: 220px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: var(--surface);
       color: var(--text);
       outline: none;
+      font-size: 14px;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 16px;
-    }
-
-    .card {
-      padding: 18px;
+    .case-hero {
+      padding: 20px;
       border-radius: 24px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.08);
+      background: var(--surface-strong);
     }
 
-    .case { grid-column: span 7; }
-    .tests { grid-column: span 5; }
-    .stats { grid-column: span 12; }
+    .case-hero .symptom {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0 0 8px;
+    }
 
-    .card h3 { margin: 0 0 10px; font-size: 22px; }
-    .muted { color: var(--muted); }
+    .case-hero .meta {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 14px;
+    }
 
-    .test-list {
-      margin: 0;
-      padding-left: 18px;
-      line-height: 1.7;
+    .primary-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 90, 165, 0.5);
+      background: linear-gradient(135deg, rgba(255, 90, 165, 0.35), rgba(255, 90, 165, 0.15));
+      color: var(--text);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: default;
+    }
+
+    .primary-action code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px;
+      opacity: 0.95;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 14px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-top: 4px;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255, 90, 165, 0.25);
+    }
+
+    .dot.muted {
+      background: rgba(255, 255, 255, 0.35);
+      box-shadow: none;
+    }
+
+    .timeline-body {
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .timeline-body strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .timeline-body span {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    /* ── Right stack ── */
+    .stack {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow: auto;
+    }
+
+    .panel {
+      padding: 14px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    .panel h3 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .evidence-item,
+    .hyp-item,
+    .cmd-item,
+    .check-item {
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.05);
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .evidence-item:last-child,
+    .hyp-item:last-child,
+    .cmd-item:last-child,
+    .check-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .evidence-item .type {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .hyp-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .confidence {
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .cmd-item code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .check {
+      width: 18px;
+      height: 18px;
+      border-radius: 6px;
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      flex-shrink: 0;
+    }
+
+    .check.done {
+      background: rgba(255, 90, 165, 0.4);
+      border-color: var(--accent);
     }
 
     .pill-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 14px;
+      gap: 8px;
+      margin-top: 10px;
     }
 
     .pill {
-      padding: 10px 14px;
+      padding: 7px 12px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.09);
-      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 12px;
     }
 
-    .accent {
-      color: var(--accent);
-      font-weight: 700;
-    }
-
-    .footer {
-      display: flex;
-      gap: 12px;
-      justify-content: space-between;
-      align-items: center;
-      color: var(--muted);
-      padding: 6px 4px 0;
+    @media (max-width: 1100px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+      .sidebar, .stack {
+        min-height: auto;
+      }
     }
   </style>
 </head>
 <body>
   <div class="shell">
+    <!-- Left navigation -->
     <aside class="sidebar glass">
       <div class="brand">
         <h1>Fix Happens</h1>
@@ -171,62 +380,142 @@
       </div>
 
       <div class="nav">
-        <div class="nav-item active">Dashboard</div>
-        <div class="nav-item">Cases</div>
+        <div class="nav-item">Dashboard</div>
+        <div class="nav-item active">Cases</div>
         <div class="nav-item">Evidence</div>
         <div class="nav-item">Knowledge</div>
         <div class="nav-item">Assets</div>
         <div class="nav-item">Settings</div>
       </div>
+
+      <div class="sidebar-footer">
+        Clear Crystal · Liquid Glass<br />
+        v0.8.0 · macOS shell
+      </div>
     </aside>
 
-    <main class="content glass">
+    <!-- Center case workspace -->
+    <main class="workspace glass">
       <div class="topbar">
         <div>
-          <h2>Dashboard</h2>
-          <div class="muted">Clear crystal UI · pink accent · soft blur · layered depth</div>
+          <h2>Case Workspace</h2>
+          <div class="status-row">
+            <span class="badge accent">Diagnosing</span>
+            <span class="badge">MacBook Pro</span>
+            <span class="badge">Confidence 94%</span>
+            <span class="badge">Case #1042</span>
+          </div>
         </div>
-        <input class="search" value="Search cases, commands, symptoms..." />
+        <input class="search" placeholder="Search cases, commands, symptoms…" />
       </div>
 
-      <section class="grid">
-        <div class="card case">
-          <h3>Current Case</h3>
-          <div class="accent">Wi-Fi connected but no internet</div>
-          <p class="muted">Device: MacBook Pro · Status: Diagnosing · Confidence: 94%</p>
-          <div class="pill-row">
-            <div class="pill">No route to host</div>
-            <div class="pill">No IP assigned</div>
-            <div class="pill">VPN inactive</div>
-          </div>
+      <section class="case-hero">
+        <p class="symptom">Wi-Fi connected but no internet</p>
+        <p class="meta">Opened 14 min ago · Asset: MacBook Pro 16" · Platform: macOS</p>
+        <div class="primary-action">
+          Next test → <code>ipconfig getifaddr en0</code>
         </div>
-
-        <div class="card tests">
-          <h3>Recommended Next Tests</h3>
-          <ol class="test-list">
-            <li>ping 8.8.8.8</li>
-            <li>route -n get default</li>
-            <li>ipconfig getifaddr en0</li>
-            <li>networksetup -getinfo Wi-Fi</li>
-          </ol>
-        </div>
-
-        <div class="card stats">
-          <h3>Diagnostic Snapshot</h3>
-          <div class="pill-row">
-            <div class="pill">DHCP Failure</div>
-            <div class="pill">Network Preference Corruption</div>
-            <div class="pill">DNS Failure</div>
-            <div class="pill">Repair verification pending</div>
-          </div>
+        <div class="pill-row">
+          <div class="pill">No route to host</div>
+          <div class="pill">No IP assigned</div>
+          <div class="pill">VPN inactive</div>
         </div>
       </section>
 
-      <div class="footer">
-        <div>Liquid glass style applied across the macOS shell.</div>
-        <div>Clear crystal surfaces · pink highlights · frosted translucency</div>
+      <div>
+        <h3 class="section-title">Case Timeline</h3>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="dot"></div>
+            <div class="timeline-body">
+              <strong>Evidence collected</strong>
+              <span>User reported “connected but no internet”. Command output: no route to host.</span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="dot"></div>
+            <div class="timeline-body">
+              <strong>Hypotheses ranked</strong>
+              <span>DHCP Failure (92%) · Network Preference Corruption (78%) · VPN Route Corruption (55%)</span>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="dot muted"></div>
+            <div class="timeline-body">
+              <strong>Verification pending</strong>
+              <span>Awaiting results of recommended network tests.</span>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
+
+    <!-- Right evidence / hypotheses / commands / verification -->
+    <aside class="stack glass">
+      <div class="panel">
+        <h3>Evidence</h3>
+        <div class="evidence-item">
+          <div class="type">Observation</div>
+          Wi-Fi shows connected, no internet access
+        </div>
+        <div class="evidence-item">
+          <div class="type">Command Output</div>
+          no route to host
+        </div>
+        <div class="evidence-item">
+          <div class="type">User Statement</div>
+          VPN was used earlier today
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Hypotheses</h3>
+        <div class="hyp-item">
+          <span>DHCP Failure</span>
+          <span class="confidence">92%</span>
+        </div>
+        <div class="hyp-item">
+          <span>Network Preference Corruption</span>
+          <span class="confidence">78%</span>
+        </div>
+        <div class="hyp-item">
+          <span>VPN Route Corruption</span>
+          <span class="confidence">55%</span>
+        </div>
+        <div class="hyp-item">
+          <span>DNS Failure</span>
+          <span class="confidence">40%</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Commands</h3>
+        <div class="cmd-item"><code>ping 8.8.8.8</code></div>
+        <div class="cmd-item"><code>route -n get default</code></div>
+        <div class="cmd-item"><code>ipconfig getifaddr en0</code></div>
+        <div class="cmd-item"><code>networksetup -getinfo Wi-Fi</code></div>
+      </div>
+
+      <div class="panel">
+        <h3>Verification</h3>
+        <div class="check-item">
+          <div class="check done"></div>
+          <span>Evidence recorded</span>
+        </div>
+        <div class="check-item">
+          <div class="check done"></div>
+          <span>Hypotheses scored</span>
+        </div>
+        <div class="check-item">
+          <div class="check"></div>
+          <span>Next test executed</span>
+        </div>
+        <div class="check-item">
+          <div class="check"></div>
+          <span>Repair verified</span>
+        </div>
+      </div>
+    </aside>
   </div>
 </body>
 </html>
