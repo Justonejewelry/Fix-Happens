@@ -13,18 +13,17 @@ Last updated: 2026-07-30
 - [x] Case switcher, solid-surface toggle, live re-score on evidence
 - [x] Android Case Workspace skeleton + pubspec.yaml
 - [x] Issues #4 (design system) and #5 (workspace layout) closed
+- [x] `storage.js` + `app.js` — evidence, solid mode, and active case persist across reloads
 
 ## In progress
 
-- [ ] Wire `apps/macos/storage.js` into `index.html` (localStorage)
 - [ ] Formal open / close case actions (issue #1)
-- [ ] Electron `require` of real diagnosticEngine instead of inlined copy (issue #3)
+- [ ] Electron preload → real `core/diagnosticEngine.js` (issue #3)
 - [ ] Android offline case list + photos (issue #2)
 
 ## Next recommended commits
 
-1. Load `storage.js` from index.html and persist evidence / solid mode / active case
-2. Add Create Case / Close Case controls on macOS
-3. Bridge Electron preload → `core/diagnosticEngine.js`
-4. Expand Android with case list screen and shared token constants
-5. Seed second knowledge pack (e.g. HVAC or electrical)
+1. Create Case / Close Case controls on macOS
+2. Electron preload bridge → `core/diagnosticEngine.js`
+3. Android case list screen
+4. Second knowledge pack (HVAC or electrical)
