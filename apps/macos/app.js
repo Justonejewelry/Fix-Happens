@@ -84,10 +84,10 @@
 
   function escapeHtml(s) {
     return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"');
   }
 
   function score(evidence) {
@@ -126,13 +126,16 @@
       return;
     }
     wrap.innerHTML = open
-      .map(
-        ([id, c]) =>
+      .map(([id, c]) => {
+        const tip = 'Open case #' + id + ' — ' + (c.symptom || '');
+        return (
           '<div class="case-chip' +
           (String(id) === String(activeId) ? ' active' : '') +
           '" data-case="' +
           escapeHtml(String(id)) +
-          '">' +
+          '" data-tip="' +
+          escapeHtml(tip) +
+          '" data-tip-pos="below">' +
           '<span class="id">#' +
           escapeHtml(String(id)) +
           '</span>' +
@@ -140,7 +143,8 @@
           escapeHtml(c.symptom) +
           '</span>' +
           '</div>'
-      )
+        );
+      })
       .join('');
     wrap.querySelectorAll('.case-chip').forEach((chip) => {
       chip.addEventListener('click', () => selectCase(chip.getAttribute('data-case')));
@@ -159,8 +163,11 @@
         const isObj = t && typeof t === 'object';
         const type = isObj ? t.evidence_type || t.type || 'Note' : 'Note';
         const value = isObj ? t.value || '' : String(t);
+        const tip = type + ': ' + String(value).slice(0, 80);
         return (
-          '<div class="evidence-item"><div class="type">' +
+          '<div class="evidence-item" data-tip="' +
+          escapeHtml(tip) +
+          '" data-tip-pos="left"><div class="type">' +
           escapeHtml(type) +
           '</div>' +
           escapeHtml(value) +
@@ -191,9 +198,17 @@
       return ranked;
     }
     list.innerHTML = ranked
-      .map(
-        (r) =>
-          '<div class="hyp-item">' +
+      .map((r) => {
+        const tip =
+          r.cause +
+          ' — ' +
+          r.confidence +
+          '% confidence' +
+          (r.nextTest ? ' · next: ' + r.nextTest : '');
+        return (
+          '<div class="hyp-item" data-tip="' +
+          escapeHtml(tip) +
+          '" data-tip-pos="left">' +
           '<div class="hyp-top"><span>' +
           escapeHtml(r.cause) +
           '</span>' +
@@ -204,7 +219,8 @@
           r.confidence +
           '%"></span></div>' +
           '</div>'
-      )
+        );
+      })
       .join('');
     const top = ranked[0];
     document.getElementById('nextCmd').textContent = top.nextTest;
@@ -266,15 +282,11 @@
     renderEvidence();
     renderHypotheses();
 
-    // Notify knowledge-ui / field tips to refresh for the newly selected case
     if (window.FixHappensKnowledgeUI && window.FixHappensKnowledgeUI.refreshTips) {
       setTimeout(() => window.FixHappensKnowledgeUI.refreshTips(), 50);
     }
   }
 
-  /**
-   * Reload active case from durable store (used after privileged scan attaches evidence).
-   */
   async function reloadActiveCase() {
     if (activeId == null) return;
     await selectCase(activeId);
@@ -496,7 +508,7 @@
     }
 
     const ver = document.getElementById('appVersion');
-    if (ver) ver.textContent = 'Clear Crystal · v1.2.1';
+    if (ver) ver.textContent = 'Clear Crystal · v1.3.0';
   }
 
   document.getElementById('nextTest').addEventListener('click', async () => {
@@ -604,7 +616,6 @@
   if (createBtn) createBtn.addEventListener('click', createCase);
   if (closeBtn) closeBtn.addEventListener('click', closeCase);
 
-  // Public API for knowledge-ui / scan runner
   window.reloadActiveCase = reloadActiveCase;
   window.FixHappensApp = {
     reloadActiveCase,
