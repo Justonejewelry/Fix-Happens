@@ -7,6 +7,7 @@ let caseContract = null;
 let pluginExecutor = null;
 let pluginRegistry = null;
 let scanRunner = null;
+let remediationRunner = null;
 
 try {
   db = require('./db');
@@ -30,6 +31,12 @@ try {
   scanRunner = require(path.join(__dirname, '..', '..', 'core', 'scanRunner.js'));
 } catch (e) {
   console.error('scanRunner failed', e);
+}
+
+try {
+  remediationRunner = require(path.join(__dirname, '..', '..', 'core', 'remediationRunner.js'));
+} catch (e) {
+  console.error('remediationRunner failed', e);
 }
 
 try {
@@ -72,6 +79,28 @@ function isPrivilegedEnabled() {
   } catch (_) {
     return false;
   }
+}
+
+function attachEvidence(caseId, result, kind) {
+  if (!result || !caseId || !db) return result;
+  if (!(result.stdout || result.stderr || result.error || result.command)) return result;
+  try {
+    const body = [
+      `$ ${result.command || result.planId || kind}`,
+      result.stdout || '',
+      result.stderr ? '[stderr]\n' + result.stderr : '',
+      result.error ? '[error] ' + result.error : '',
+      result.durationMs != null ? `(${result.durationMs}ms)` : ''
+    ]
+      .filter(Boolean)
+      .join('\n')
+      .trim();
+    db.addEvidence(caseId, kind === 'fix' ? 'Remediation' : 'Command Output', body.slice(0, 12000));
+    result.attachedEvidence = true;
+  } catch (e) {
+    result.attachError = e.message;
+  }
+  return result;
 }
 
 function wireIpc() {
@@ -131,7 +160,8 @@ function wireIpc() {
           hypotheses: [],
           tips: [],
           nextTests: [],
-          recommendedScans: []
+          recommendedScans: [],
+          recommendedFixes: []
         }
       ];
     }
@@ -165,30 +195,39 @@ function wireIpc() {
     const params = (payload && payload.params) || {};
     const caseId = payload && payload.caseId;
     const enabled = isPrivilegedEnabled();
-
     const result = await scanRunner.runPlan(planId, params, { enabled });
+    return attachEvidence(caseId, result, 'scan');
+  });
 
-    // Optionally attach command output as case evidence
-    if (result && caseId && db && (result.stdout || result.stderr || result.error)) {
-      try {
-        const body = [
-          `$ ${result.command || planId}`,
-          result.stdout || '',
-          result.stderr ? '[stderr]\n' + result.stderr : '',
-          result.error ? '[error] ' + result.error : '',
-          result.durationMs != null ? `(${result.durationMs}ms)` : ''
-        ]
-          .filter(Boolean)
-          .join('\n')
-          .trim();
-        db.addEvidence(caseId, 'Command Output', body.slice(0, 12000));
-        result.attachedEvidence = true;
-      } catch (e) {
-        result.attachError = e.message;
-      }
+  // --- Remediation / auto-fix runner ---
+  ipcMain.handle('fix:listPlans', () => {
+    if (!remediationRunner) return [];
+    return remediationRunner.listPlans();
+  });
+
+  ipcMain.handle('fix:status', () => {
+    return {
+      available: !!remediationRunner,
+      enabled: isPrivilegedEnabled(),
+      platform: process.platform
+    };
+  });
+
+  ipcMain.handle('fix:suggest', (_e, cause) => {
+    if (!remediationRunner) return [];
+    return remediationRunner.suggestFixesForCause(cause || '');
+  });
+
+  ipcMain.handle('fix:run', async (_e, payload) => {
+    if (!remediationRunner) {
+      return { ok: false, error: 'remediationRunner unavailable' };
     }
-
-    return result;
+    const planId = payload && payload.planId;
+    const params = (payload && payload.params) || {};
+    const caseId = payload && payload.caseId;
+    const enabled = isPrivilegedEnabled();
+    const result = await remediationRunner.runPlan(planId, params, { enabled });
+    return attachEvidence(caseId, result, 'fix');
   });
 
   ipcMain.handle('case:export', (_e, caseId) => {
