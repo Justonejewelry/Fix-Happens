@@ -1,9 +1,10 @@
-/* Knowledge drawer + field tips + privileged scan runner UI + CaseArtifact export */
+/* Knowledge drawer + field tips + scan/fix runners + CaseArtifact export */
 (function () {
   const K = window.FixHappensKnowledge;
   const P = window.FixHappensPlugins;
   const X = window.FixHappensExport;
   const S = window.FixHappensScan;
+  const F = window.FixHappensFix;
 
   const PARAM_PLANS = new Set([
     'ping-host',
@@ -71,22 +72,29 @@
       '.field-tip strong{color:#ffc2dc;font-size:11px;display:block;margin-bottom:2px;}' +
       '.field-tip.knowledge{border-color:rgba(120,180,255,.3);background:rgba(80,140,255,.08);}' +
       '.field-tip.knowledge strong{color:#a8c8ff;}' +
-      '#scanPanel{margin-top:10px;padding:12px;border-radius:16px;border:1px solid rgba(120,200,160,.25);' +
-      'background:rgba(60,140,100,.08);}' +
-      '#scanPanel .scan-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}' +
+      '#scanPanel,#fixPanel{margin-top:10px;padding:12px;border-radius:16px;}' +
+      '#scanPanel{border:1px solid rgba(120,200,160,.25);background:rgba(60,140,100,.08);}' +
+      '#fixPanel{border:1px solid rgba(255,180,80,.3);background:rgba(180,100,40,.1);}' +
+      '#scanPanel .scan-head,#fixPanel .fix-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}' +
       '#scanPanel .scan-title{font-weight:700;font-size:13px;color:#b8f0d0;}' +
+      '#fixPanel .fix-title{font-weight:700;font-size:13px;color:#ffd8a0;}' +
       '#scanPanel .scan-params{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;}' +
       '#scanPanel .scan-params input{flex:1;min-width:120px;padding:6px 10px;border-radius:10px;' +
       'border:1px solid rgba(120,200,160,.3);background:rgba(0,0,0,.25);color:#e8fff2;font-size:12px;}' +
-      '#scanPanel .scan-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}' +
+      '#scanPanel .scan-actions,#fixPanel .fix-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}' +
       '#scanPanel button.scan-btn{font-size:11.5px;padding:6px 10px;border-radius:10px;' +
       'border:1px solid rgba(120,200,160,.35);background:rgba(80,160,120,.2);color:#d8ffe8;cursor:pointer;}' +
       '#scanPanel button.scan-btn:disabled{opacity:.45;cursor:not-allowed;}' +
       '#scanPanel button.scan-btn:hover:not(:disabled){background:rgba(80,160,120,.35);}' +
-      '#scanOutput{margin-top:8px;max-height:180px;overflow:auto;font-family:ui-monospace,monospace;' +
+      '#fixPanel button.fix-btn{font-size:11.5px;padding:6px 10px;border-radius:10px;' +
+      'border:1px solid rgba(255,180,80,.4);background:rgba(200,120,40,.25);color:#ffe8c8;cursor:pointer;}' +
+      '#fixPanel button.fix-btn:disabled{opacity:.45;cursor:not-allowed;}' +
+      '#fixPanel button.fix-btn:hover:not(:disabled){background:rgba(200,120,40,.4);}' +
+      '#scanOutput,#fixOutput{margin-top:8px;max-height:180px;overflow:auto;font-family:ui-monospace,monospace;' +
       'font-size:11px;white-space:pre-wrap;color:var(--muted);padding:8px;border-radius:10px;' +
       'background:rgba(0,0,0,.25);border:1px solid var(--line);display:none;}' +
-      '.priv-toggle{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);}';
+      '.priv-toggle{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);}' +
+      '.fix-warn{font-size:11px;color:#ffc090;margin-top:4px;line-height:1.4;}';
     document.head.appendChild(style);
 
     el('kdClose').onclick = closeDrawer;
@@ -161,7 +169,6 @@
       hero.parentNode.insertBefore(host, hero.nextSibling);
     }
 
-    // Preserve param fields across re-render if present
     const prevHost = el('scanHost') ? el('scanHost').value : '1.1.1.1';
     const prevPort = el('scanPort') ? el('scanPort').value : '443';
 
@@ -177,7 +184,8 @@
     };
 
     const items = [];
-    const recommended = [];
+    const recommendedScans = [];
+    const recommendedFixes = [];
 
     if (P && P.available) {
       try {
@@ -187,9 +195,8 @@
           for (const t of r.tips || []) {
             items.push({ source: 'plugin', label: r.pluginId, text: t });
           }
-          for (const s of r.recommendedScans || []) {
-            recommended.push(s);
-          }
+          for (const s of r.recommendedScans || []) recommendedScans.push(s);
+          for (const f of r.recommendedFixes || []) recommendedFixes.push(f);
         }
       } catch (_) {}
     }
@@ -228,9 +235,24 @@
           .join('');
     }
 
-    html += await renderScanPanel(recommended, prevHost, prevPort);
+    html += await renderScanPanel(recommendedScans, prevHost, prevPort);
+    html += await renderFixPanel(recommendedFixes);
     host.innerHTML = html;
     wireScanButtons();
+    wireFixButtons();
+  }
+
+  function privToggleHtml(enabled, id) {
+    return (
+      '<label class="priv-toggle">' +
+      '<input type="checkbox" id="' +
+      id +
+      '" ' +
+      (enabled ? 'checked' : '') +
+      '/>' +
+      ' Enable' +
+      '</label>'
+    );
   }
 
   async function renderScanPanel(recommended, prevHost, prevPort) {
@@ -250,7 +272,6 @@
       scans.push(s);
     }
 
-    // Always include common parameterized plans when enabled
     if (status.enabled) {
       for (const extra of [
         { planId: 'ping-host', label: 'Ping host' },
@@ -279,10 +300,10 @@
         '<div id="scanPanel">' +
         '<div class="scan-head">' +
         '<div class="scan-title">Privileged scans</div>' +
-        privToggleHtml(status.enabled) +
+        privToggleHtml(status.enabled, 'privScanToggle') +
         '</div>' +
         '<div style="font-size:11.5px;color:var(--muted)">' +
-        'Enable to run allowlisted read-only network diagnostics. Off by default.' +
+        'Enable to run allowlisted diagnostics. Off by default.' +
         '</div></div>'
       );
     }
@@ -295,7 +316,7 @@
           '<button type="button" class="scan-btn" data-scan-idx="' +
           i +
           '" ' +
-          (status.enabled ? '' : 'disabled title="Enable privileged scans first"') +
+          (status.enabled ? '' : 'disabled title="Enable privileged mode first"') +
           '>' +
           escapeHtml(label) +
           '</button>'
@@ -309,7 +330,7 @@
       '<div id="scanPanel">' +
       '<div class="scan-head">' +
       '<div class="scan-title">Privileged scans</div>' +
-      privToggleHtml(status.enabled) +
+      privToggleHtml(status.enabled, 'privScanToggle') +
       '</div>' +
       paramRow +
       '<div class="scan-actions">' +
@@ -320,14 +341,92 @@
     );
   }
 
-  function privToggleHtml(enabled) {
+  async function renderFixPanel(recommended) {
+    if (!F || !F.available) return '';
+
+    let status = { enabled: false, available: true };
+    try {
+      status = await F.status();
+    } catch (_) {}
+
+    const fixes = [];
+    const seen = new Set();
+    for (const s of recommended || []) {
+      const key = s.planId + JSON.stringify(s.params || {});
+      if (seen.has(key)) continue;
+      seen.add(key);
+      fixes.push(s);
+    }
+
+    // Always surface safe boosters when enabled
+    if (status.enabled) {
+      for (const extra of [
+        { planId: 'flush-dns-cache', label: 'Flush DNS' },
+        { planId: 'network-quality', label: 'Network quality' },
+        { planId: 'renew-dhcp', params: { iface: 'en0' }, label: 'Renew DHCP (en0)' },
+        {
+          planId: 'wifi-power-cycle',
+          params: { service: 'Wi-Fi' },
+          label: 'Wi-Fi power cycle'
+        },
+        {
+          planId: 'set-dns-cloudflare',
+          params: { service: 'Wi-Fi' },
+          label: 'DNS → Cloudflare'
+        },
+        {
+          planId: 'disable-web-proxy',
+          params: { service: 'Wi-Fi' },
+          label: 'Disable HTTP proxy'
+        }
+      ]) {
+        if (!fixes.some((f) => f.planId === extra.planId)) fixes.push(extra);
+      }
+    }
+
+    if (!fixes.length && !status.enabled) {
+      return (
+        '<div id="fixPanel">' +
+        '<div class="fix-head">' +
+        '<div class="fix-title">Apply fix (auto-remediation)</div>' +
+        privToggleHtml(status.enabled, 'privFixToggle') +
+        '</div>' +
+        '<div style="font-size:11.5px;color:var(--muted)">' +
+        'Enable privileged mode to apply allowlisted repairs (DNS flush, DHCP renew, Wi-Fi cycle, proxies…).' +
+        '</div></div>'
+      );
+    }
+
+    const buttons = fixes
+      .slice(0, 10)
+      .map((s, i) => {
+        const label = s.label || s.planId;
+        return (
+          '<button type="button" class="fix-btn" data-fix-idx="' +
+          i +
+          '" ' +
+          (status.enabled ? '' : 'disabled title="Enable privileged mode first"') +
+          '>' +
+          escapeHtml(label) +
+          '</button>'
+        );
+      })
+      .join('');
+
+    window.__fhFixRecs = fixes.slice(0, 10);
+
     return (
-      '<label class="priv-toggle">' +
-      '<input type="checkbox" id="privScanToggle" ' +
-      (enabled ? 'checked' : '') +
-      '/>' +
-      ' Enable' +
-      '</label>'
+      '<div id="fixPanel">' +
+      '<div class="fix-head">' +
+      '<div class="fix-title">Apply fix (auto-remediation)</div>' +
+      privToggleHtml(status.enabled, 'privFixToggle') +
+      '</div>' +
+      '<div class="fix-warn">Allowlisted plans only · no sudo · attaches result as case evidence</div>' +
+      '<div class="fix-actions">' +
+      buttons +
+      '</div>' +
+      '<div id="fixOutput"></div>' +
+      '</div>'
     );
   }
 
@@ -350,7 +449,7 @@
           await S.setEnabled(!!toggle.checked);
           await refreshFieldTips();
         } catch (e) {
-          window.alert('Could not update scan preference: ' + (e.message || e));
+          window.alert('Could not update preference: ' + (e.message || e));
         }
       };
     }
@@ -380,6 +479,75 @@
               result.stderr || '',
               result.error ? 'Error: ' + result.error : '',
               result.attachedEvidence ? '(attached to case evidence)' : '',
+              result.durationMs != null ? result.durationMs + 'ms' : ''
+            ]
+              .filter(Boolean)
+              .join('\n');
+          }
+          if (result.attachedEvidence && typeof window.reloadActiveCase === 'function') {
+            window.reloadActiveCase();
+          }
+        } catch (e) {
+          if (out) out.textContent = 'Failed: ' + (e.message || e);
+        } finally {
+          btn.disabled = false;
+        }
+      };
+    });
+  }
+
+  function wireFixButtons() {
+    const toggle = el('privFixToggle');
+    if (toggle) {
+      toggle.onchange = async () => {
+        // Share the same privileged preference as scans
+        if (!S) return;
+        try {
+          await S.setEnabled(!!toggle.checked);
+          await refreshFieldTips();
+        } catch (e) {
+          window.alert('Could not update preference: ' + (e.message || e));
+        }
+      };
+    }
+
+    document.querySelectorAll('#fixPanel .fix-btn').forEach((btn) => {
+      btn.onclick = async () => {
+        const idx = Number(btn.getAttribute('data-fix-idx'));
+        const rec = (window.__fhFixRecs || [])[idx];
+        if (!rec || !F) return;
+
+        const label = rec.label || rec.planId;
+        if (
+          !window.confirm(
+            'Apply fix: ' +
+              label +
+              '?\n\nThis runs an allowlisted remediation plan on this Mac. Continue?'
+          )
+        ) {
+          return;
+        }
+
+        btn.disabled = true;
+        const out = el('fixOutput');
+        if (out) {
+          out.style.display = 'block';
+          out.textContent = 'Applying ' + rec.planId + '…';
+        }
+        try {
+          const result = await F.run({
+            planId: rec.planId,
+            params: rec.params || {},
+            caseId: activeCaseId()
+          });
+          if (out) {
+            out.textContent = [
+              result.ok ? '✓ Applied' : '✗ Failed',
+              result.command ? '$ ' + result.command : rec.planId,
+              result.stdout || '',
+              result.stderr || '',
+              result.error ? 'Error: ' + result.error : '',
+              result.attachedEvidence ? '(attached as Remediation evidence)' : '',
               result.durationMs != null ? result.durationMs + 'ms' : ''
             ]
               .filter(Boolean)
