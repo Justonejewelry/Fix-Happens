@@ -1,23 +1,45 @@
-class PluginRegistry {
-  constructor() {
-    this.plugins = new Map();
-  }
+/**
+ * In-memory registry of loaded diagnostic plugins.
+ */
 
-  register(plugin) {
-    this.plugins.set(plugin.id, plugin);
-  }
+const registry = new Map();
 
-  unregister(id) {
-    this.plugins.delete(id);
+function register(plugin) {
+  if (!plugin || !plugin.id) {
+    throw new Error('plugin requires id');
   }
-
-  get(id) {
-    return this.plugins.get(id);
+  if (typeof plugin.diagnose !== 'function') {
+    throw new Error(`plugin ${plugin.id} must export diagnose(context)`);
   }
-
-  list() {
-    return Array.from(this.plugins.values());
-  }
+  registry.set(plugin.id, plugin);
+  return plugin.id;
 }
 
-module.exports = PluginRegistry;
+function unregister(id) {
+  return registry.delete(id);
+}
+
+function get(id) {
+  return registry.get(id) || null;
+}
+
+function list() {
+  return [...registry.values()].map((p) => ({
+    id: p.id,
+    name: p.name || p.id,
+    version: p.version || '0.0.0',
+    description: p.description || ''
+  }));
+}
+
+function clear() {
+  registry.clear();
+}
+
+module.exports = {
+  register,
+  unregister,
+  get,
+  list,
+  clear
+};
