@@ -20,6 +20,8 @@ jobs:
         run: node core/pluginSystem.test.js
       - name: Scan runner tests
         run: node core/scanRunner.test.js
+      - name: Remediation runner tests
+        run: node core/remediationRunner.test.js
 
   package-json:
     runs-on: ubuntu-latest
