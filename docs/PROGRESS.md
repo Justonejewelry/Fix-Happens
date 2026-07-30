@@ -1,6 +1,6 @@
 # Development progress
 
-Last updated: 2026-07-30 · **v1.2.0**
+Last updated: 2026-07-30 · **v1.2.1**
 
 ## Completed
 
@@ -10,20 +10,22 @@ Last updated: 2026-07-30 · **v1.2.0**
 - [x] Durable persistence (macOS JSON userData, Android SQLite)
 - [x] Plugin system + 7 plugins including `network-scan-map`
 - [x] Knowledge packs (7) + contextual tips (macOS + Android)
-- [x] Privileged allowlisted scan runner (opt-in)
-- [x] **Scan host/port parameter editor**
+- [x] Privileged allowlisted scan runner (opt-in) + host/port params
+- [x] **Evidence live-reload after scan** (`reloadActiveCase`)
+- [x] **CaseArtifact import** (More → Import)
 - [x] CaseArtifact export + CI (engine / plugins / scan)
 - [x] Swarm sprints 2–3
 
 ## Next
 
-- [ ] macOS SQLite migration (JSON remains v1 store)
+- [ ] macOS SQLite migration (JSON remains v1 store; schema already aligned)
 - [ ] Android: optional companion-assisted remote scan later
 - [ ] Signed / remote knowledge pack install
-- [ ] Evidence list live-reload after scan attach on macOS (`reloadActiveCase` hook in app.js)
 
 ## Verify
 
 ```bash
 npm test && npm start
+# Run privileged scan → evidence list should refresh automatically
+# More → Import CaseArtifact JSON round-trips with Export
 ```

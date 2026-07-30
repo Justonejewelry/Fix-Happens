@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fix Happens — Case Workspace</title>
-  <link rel="stylesheet" href="#">
   <style>
     :root {
       --glass-bg: rgba(255, 255, 255, 0.12);
@@ -75,7 +74,6 @@
       background: transparent; color: var(--muted); font-size: 13.5px; font-weight: 500;
       cursor: pointer; transition: all 0.18s ease;
     }
-    .nav-item svg { width: 18px; height: 18px; opacity: 0.85; flex-shrink: 0; }
     .nav-item:hover { background: var(--surface); color: var(--text); border-color: var(--line); }
     .nav-item.active {
       background: linear-gradient(135deg, rgba(255, 90, 165, 0.32), rgba(255, 255, 255, 0.06));
@@ -83,11 +81,10 @@
       color: var(--text);
       box-shadow: 0 6px 20px rgba(255, 90, 165, 0.12);
     }
-    .nav-item.active svg { opacity: 1; color: var(--accent); }
     .case-switcher { margin-top: 2px; flex: 1; min-height: 0; display: flex; flex-direction: column; }
     .case-switcher h4 {
       margin: 0 0 8px; font-size: 10px; text-transform: uppercase;
-      letter-spacing: 0.08em; color: var(--muted); display: flex; align-items: center; gap: 6px;
+      letter-spacing: 0.08em; color: var(--muted);
     }
     .case-actions { display: flex; gap: 6px; margin-bottom: 10px; }
     .btn {
@@ -96,13 +93,11 @@
       cursor: pointer; border: 1px solid var(--line); background: var(--surface);
       color: var(--text); transition: all 0.15s ease;
     }
-    .btn svg { width: 14px; height: 14px; }
     .btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.28); }
     .btn.primary {
       flex: 1;
       border-color: rgba(255, 90, 165, 0.55);
       background: linear-gradient(135deg, rgba(255, 90, 165, 0.45), rgba(255, 90, 165, 0.18));
-      box-shadow: 0 4px 16px rgba(255, 90, 165, 0.15);
     }
     .btn.ghost { flex: 0 0 auto; opacity: 0.9; }
     .case-chip {
@@ -144,7 +139,6 @@
     .toggle.on::after { transform: translateX(18px); }
     .workspace { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; overflow: auto; }
     .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
-    .topbar-title { display: flex; align-items: center; gap: 10px; }
     .topbar-title h2 { margin: 0; font-size: 24px; letter-spacing: -0.03em; font-weight: 700; }
     .status-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     .badge {
@@ -152,18 +146,13 @@
       padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line);
       background: var(--surface); font-size: 11.5px; color: var(--muted); font-weight: 500;
     }
-    .badge svg { width: 12px; height: 12px; }
     .badge.accent {
       color: #ffc2dc; border-color: rgba(255, 90, 165, 0.45);
       background: rgba(255, 90, 165, 0.18); font-weight: 600;
     }
     .search-wrap { position: relative; min-width: 240px; }
-    .search-wrap svg {
-      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-      width: 15px; height: 15px; opacity: 0.5; pointer-events: none;
-    }
     .search {
-      width: 100%; padding: 11px 14px 11px 36px; border-radius: 14px;
+      width: 100%; padding: 11px 14px; border-radius: 14px;
       border: 1px solid var(--line); background: var(--surface);
       color: var(--text); outline: none; font-size: 13px;
     }
@@ -172,9 +161,7 @@
       background: linear-gradient(145deg, var(--surface-strong), rgba(255,255,255,0.04));
       display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: start;
     }
-    .case-hero .symptom {
-      font-size: 20px; font-weight: 700; color: #ff8ec4; margin: 0 0 6px;
-    }
+    .case-hero .symptom { font-size: 20px; font-weight: 700; color: #ff8ec4; margin: 0 0 6px; }
     .case-hero .meta { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
     .hero-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .primary-action {
@@ -188,7 +175,7 @@
     .menu-btn { position: relative; }
     .menu-panel {
       display: none; position: absolute; right: 0; top: calc(100% + 6px); z-index: 20;
-      min-width: 180px; padding: 6px; border-radius: 14px;
+      min-width: 200px; padding: 6px; border-radius: 14px;
       border: 1px solid var(--glass-border); background: rgba(22, 18, 40, 0.95);
     }
     .menu-btn.open .menu-panel { display: block; }
@@ -213,7 +200,6 @@
       padding: 10px 8px; border-radius: 14px; border: 1px solid var(--line);
       background: rgba(255,255,255,0.04); text-align: center; font-size: 10.5px; color: var(--muted);
     }
-    .step svg { width: 16px; height: 16px; display: block; margin: 0 auto 5px; opacity: 0.55; }
     .step.done { border-color: rgba(255, 90, 165, 0.4); background: rgba(255, 90, 165, 0.12); color: #ffc2dc; }
     .step.active { border-color: rgba(255, 90, 165, 0.65); color: var(--text); }
     .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
@@ -235,7 +221,6 @@
       width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center;
       background: rgba(255, 90, 165, 0.2); border: 1px solid rgba(255, 90, 165, 0.35); z-index: 1;
     }
-    .tl-icon svg { width: 14px; height: 14px; color: var(--accent); }
     .tl-icon.muted { background: rgba(255,255,255,0.06); border-color: var(--line); }
     .timeline-body { padding: 11px 13px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); }
     .timeline-body strong { display: block; margin-bottom: 3px; font-size: 13px; }
@@ -245,7 +230,7 @@
     .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
     .panel-head h3 {
       margin: 0; font-size: 11px; font-weight: 700; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 0.07em; display: flex; align-items: center; gap: 6px;
+      text-transform: uppercase; letter-spacing: 0.07em;
     }
     .panel-head .count {
       font-size: 11px; font-weight: 600; color: var(--accent);
@@ -334,7 +319,7 @@
         <div id="caseSwitcherList"></div>
       </div>
       <div class="sidebar-footer">
-        Clear Crystal · v1.0.1
+        <span id="appVersion">Clear Crystal · v1.2.1</span>
         <div><span class="kbd">N</span> next · <span class="kbd">E</span> evidence · <span class="kbd">⌘K</span> search</div>
         <div class="toggle-row"><span>Solid surfaces</span><div class="toggle" id="solidToggle"></div></div>
       </div>
@@ -367,6 +352,7 @@
               <button type="button" class="btn" id="moreMenuBtn">More</button>
               <div class="menu-panel" role="menu">
                 <button type="button" class="menu-item" id="menuExport">Export CaseArtifact JSON</button>
+                <button type="button" class="menu-item" id="menuImport">Import CaseArtifact JSON</button>
                 <button type="button" class="menu-item" id="menuCopyAll">Copy all evidence</button>
                 <button type="button" class="menu-item" id="closeCaseBtnMenu">Close case</button>
               </div>
@@ -429,6 +415,7 @@
           <div class="cmd-item"><code>route -n get default</code><button class="copy-btn" type="button" data-cmd="route -n get default">Copy</button></div>
           <div class="cmd-item"><code>ipconfig getifaddr en0</code><button class="copy-btn" type="button" data-cmd="ipconfig getifaddr en0">Copy</button></div>
           <div class="cmd-item"><code>networksetup -getinfo Wi-Fi</code><button class="copy-btn" type="button" data-cmd="networksetup -getinfo Wi-Fi">Copy</button></div>
+          <div class="cmd-item"><code>arp -a</code><button class="copy-btn" type="button" data-cmd="arp -a">Copy</button></div>
         </div>
       </div>
       <div class="panel">
@@ -464,6 +451,12 @@
       document.getElementById('menuExport')?.addEventListener('click', () => {
         if (window.FixHappensKnowledgeUI && window.FixHappensKnowledgeUI.exportCase) {
           window.FixHappensKnowledgeUI.exportCase();
+        }
+        menu?.classList.remove('open');
+      });
+      document.getElementById('menuImport')?.addEventListener('click', () => {
+        if (window.FixHappensApp && window.FixHappensApp.importArtifact) {
+          window.FixHappensApp.importArtifact();
         }
         menu?.classList.remove('open');
       });
