@@ -21,17 +21,27 @@ function test(name, fn) {
   }
 }
 
-test('loads example-network plugin', () => {
+const EXPECTED_PLUGINS = [
+  'example-network',
+  'printer-diagnostics',
+  'power-sleep',
+  'storage-disk',
+  'display-graphics',
+  'usb-peripheral'
+];
+
+test('loads all high-value plugins', () => {
   registry.clear();
   const pluginsDir = path.join(__dirname, '..', 'plugins');
   const { loaded, errors } = loadPlugins(pluginsDir, { platform: 'darwin' });
-  assert.ok(loaded.length >= 1, 'expected at least one plugin');
-  assert.ok(
-    loaded.some((p) => p.id === 'example-network'),
-    'example-network missing'
-  );
-  // errors may include other dirs; none should be fatal for example-network
-  const fatal = errors.filter((e) => e.id === 'example-network');
+  assert.ok(loaded.length >= 6, `expected >=6 plugins, got ${loaded.length}`);
+  for (const id of EXPECTED_PLUGINS) {
+    assert.ok(
+      loaded.some((p) => p.id === id),
+      `missing plugin: ${id}`
+    );
+  }
+  const fatal = errors.filter((e) => EXPECTED_PLUGINS.includes(e.id));
   assert.strictEqual(fatal.length, 0, JSON.stringify(fatal));
 });
 
@@ -48,6 +58,33 @@ test('plugin diagnose returns network suggestions', () => {
   assert.ok(net);
   assert.ok(net.hypotheses.length >= 1);
   assert.ok(net.nextTests.length >= 1);
+});
+
+test('printer plugin responds to offline printer symptom', () => {
+  registry.clear();
+  loadPlugins(path.join(__dirname, '..', 'plugins'), { platform: 'darwin' });
+  const results = runAll({
+    symptom: 'Printer offline and not accepting jobs',
+    evidence: ['lpstat shows paused', 'USB cable connected'],
+    platform: 'macos'
+  });
+  const printer = results.find((r) => r.pluginId === 'printer-diagnostics');
+  assert.ok(printer, 'printer-diagnostics did not run');
+  assert.ok(printer.hypotheses.length >= 1);
+  assert.ok(printer.nextTests.length >= 1);
+});
+
+test('power-sleep plugin responds to wake failure', () => {
+  registry.clear();
+  loadPlugins(path.join(__dirname, '..', 'plugins'), { platform: 'darwin' });
+  const results = runAll({
+    symptom: 'MacBook will not wake from sleep',
+    evidence: ['black screen after lid open', 'pmset shows assertions'],
+    platform: 'macos'
+  });
+  const power = results.find((r) => r.pluginId === 'power-sleep');
+  assert.ok(power, 'power-sleep did not run');
+  assert.ok(power.hypotheses.length >= 1);
 });
 
 test('knowledge packs load', () => {
