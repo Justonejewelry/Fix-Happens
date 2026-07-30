@@ -18,6 +18,7 @@ class _CaseListScreenState extends State<CaseListScreen> {
   final _store = CaseStore();
   List<CaseRecord> _cases = [];
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -26,12 +27,37 @@ class _CaseListScreenState extends State<CaseListScreen> {
   }
 
   Future<void> _reload() async {
-    final list = await _store.load();
-    if (!mounted) return;
     setState(() {
-      _cases = list;
-      _loading = false;
+      _loading = true;
+      _error = null;
     });
+    try {
+      final list = await _store.load();
+      if (!mounted) return;
+      setState(() {
+        _cases = list;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      // load() may still have recovered seed data on corrupt JSON
+      try {
+        final list = await _store.load();
+        if (!mounted) return;
+        setState(() {
+          _cases = list;
+          _loading = false;
+          _error = e.toString();
+        });
+      } catch (e2) {
+        if (!mounted) return;
+        setState(() {
+          _loading = false;
+          _error = e2.toString();
+          _cases = [];
+        });
+      }
+    }
   }
 
   List<CaseRecord> get _open =>
@@ -68,12 +94,22 @@ class _CaseListScreenState extends State<CaseListScreen> {
       ),
     );
     if (symptom == null || symptom.isEmpty) return;
-    final created = _store.create(symptom: symptom);
-    _cases = [..._cases, created];
-    await _store.save(_cases);
-    if (!mounted) return;
-    setState(() {});
-    await _openCase(created);
+    try {
+      final created = _store.create(symptom: symptom);
+      _cases = [..._cases, created];
+      await _store.save(_cases);
+      if (!mounted) return;
+      setState(() {});
+      await _openCase(created);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Save failed: $e'),
+          backgroundColor: Colors.red.shade800,
+        ),
+      );
+    }
   }
 
   Future<void> _openCase(CaseRecord c) async {
@@ -84,7 +120,15 @@ class _CaseListScreenState extends State<CaseListScreen> {
           onChanged: (updated) async {
             final i = _cases.indexWhere((x) => x.id == updated.id);
             if (i >= 0) _cases[i] = updated;
-            await _store.save(_cases);
+            try {
+              await _store.save(_cases);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Save failed: $e')),
+                );
+              }
+            }
             if (mounted) setState(() {});
           },
         ),
@@ -125,67 +169,103 @@ class _CaseListScreenState extends State<CaseListScreen> {
         ),
         body: _loading
             ? const Center(child: CircularProgressIndicator(color: kAccent))
-            : _open.isEmpty
-                ? const Center(
-                    child: Text(
-                      'No open cases\nTap New case to start',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white70),
-                    ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
-                    itemCount: _open.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, i) {
-                      final c = _open[i];
-                      return GestureDetector(
-                        onTap: () => _openCase(c),
-                        child: CrystalCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    '#${c.id}',
-                                    style: const TextStyle(
-                                      color: kAccent,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Text(
-                                    c.status,
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.65),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                c.symptom,
+            : Column(
+                children: [
+                  if (_error != null)
+                    Material(
+                      color: Colors.red.shade900.withOpacity(0.85),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.warning_amber, color: Colors.white),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _error!,
                                 style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                  fontSize: 12,
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              Text(
-                                '${c.device} · ${c.evidence.length} evidence',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.55),
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white),
+                              onPressed: () => setState(() => _error = null),
+                            ),
+                          ],
                         ),
-                      );
-                    },
+                      ),
+                    ),
+                  Expanded(
+                    child: _open.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'No open cases\nTap New case to start',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+                            itemCount: _open.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, i) {
+                              final c = _open[i];
+                              return GestureDetector(
+                                onTap: () => _openCase(c),
+                                child: CrystalCard(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            '#${c.id}',
+                                            style: const TextStyle(
+                                              color: kAccent,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          Text(
+                                            c.status,
+                                            style: TextStyle(
+                                              color: Colors.white
+                                                  .withOpacity(0.65),
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        c.symptom,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        '${c.device} · ${c.evidence.length} evidence',
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.55),
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                   ),
+                ],
+              ),
       ),
     );
   }
