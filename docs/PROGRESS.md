@@ -6,24 +6,32 @@ Last updated: 2026-07-30
 
 - [x] Monorepo foundation (apps / core / design / docs / knowledge / plugins)
 - [x] package.json + Electron entry (`npm start`)
-- [x] Strengthened `core/diagnosticEngine.js`
+- [x] Shared `core/diagnosticEngine.js` + causes.json parity
 - [x] Clear Crystal Liquid Glass tokens + checklist + fallbacks
 - [x] macOS Case Workspace (3-column Liquid Glass UI)
-- [x] Copy commands, keyboard shortcuts, confidence meters, timeline connector
-- [x] Case switcher, solid-surface toggle, live re-score on evidence
-- [x] Android Case Workspace skeleton + pubspec.yaml
-- [x] Issues #4 (design system) and #5 (workspace layout) closed
-- [x] `storage.js` + `app.js` — evidence, solid mode, and active case persist across reloads
+- [x] Durable JSON store (macOS) + SQLite store (Android)
+- [x] Knowledge packs + knowledge UI (macOS drawer + Android screen)
+- [x] Plugin system (loader / validator / registry / executor + IPC)
+- [x] **5 high-value diagnostic plugins** (printer, power-sleep, storage-disk, display-graphics, usb-peripheral)
+- [x] CaseArtifact v1 export
+- [x] Plugin + engine tests + CI workflow
 
-## In progress
+## In progress / next
 
-- [ ] Formal open / close case actions (issue #1)
-- [ ] Electron preload → real `core/diagnosticEngine.js` (issue #3)
-- [ ] Android offline case list + photos (issue #2)
+- [ ] Wire plugin tips more deeply into Android case workspace
+- [ ] macOS SQLite migration (JSON remains production v1)
+- [ ] Additional knowledge packs matching the new plugin domains
+- [ ] Formal verification checklist parity across platforms
 
-## Next recommended commits
+## Plugin inventory (6 total)
 
-1. Create Case / Close Case controls on macOS
-2. Electron preload bridge → `core/diagnosticEngine.js`
-3. Android case list screen
-4. Second knowledge pack (HVAC or electrical)
+| Plugin | Domain |
+|--------|--------|
+| `example-network` | Network (DHCP / DNS / VPN) |
+| `printer-diagnostics` | CUPS / offline / drivers |
+| `power-sleep` | Sleep / wake / battery / clamshell |
+| `storage-disk` | Space / APFS / SMART / I/O |
+| `display-graphics` | External monitors / GPU / scaling |
+| `usb-peripheral` | Hubs / HID / enumeration / sleep |
+
+Run `npm run test:plugins` to verify all six load and respond.
