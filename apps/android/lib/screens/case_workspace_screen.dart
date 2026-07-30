@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/case_record.dart';
 import '../services/case_store.dart';
 import '../services/diagnostic_engine.dart';
+import '../services/field_tips_service.dart';
 import '../widgets/crystal_card.dart';
 
 class CaseWorkspaceScreen extends StatefulWidget {
@@ -29,12 +30,14 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
   late CaseRecord _case;
   final _input = TextEditingController();
   final _picker = ImagePicker();
+  List<FieldTip> _tips = const [];
 
   @override
   void initState() {
     super.initState();
     _case = widget.caseRecord;
     _syncAutoChecks();
+    _refreshTips();
   }
 
   @override
@@ -46,6 +49,15 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
   List<Hypothesis> get _hypotheses => DiagnosticEngine.score(_case.evidence);
 
   void _notify() => widget.onChanged(_case);
+
+  Future<void> _refreshTips() async {
+    final tips = await FieldTipsService.relevant(
+      symptom: _case.symptom,
+      evidence: _case.evidence,
+    );
+    if (!mounted) return;
+    setState(() => _tips = tips);
+  }
 
   void _syncAutoChecks() {
     final v = Map<String, bool>.from(_case.verification);
@@ -76,6 +88,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
         _syncAutoChecks();
       });
       _notify();
+      await _refreshTips();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -100,6 +113,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
         _syncAutoChecks();
       });
       _notify();
+      await _refreshTips();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -281,7 +295,6 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
         body: ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
           children: [
-            // Hero
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,7 +425,59 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
             ),
             const SizedBox(height: 14),
 
-            // Verification checklist
+            // Field tips (knowledge packs)
+            if (_tips.isNotEmpty) ...[
+              CrystalCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SectionTitle(
+                      'Field tips',
+                      icon: Icons.lightbulb_outline,
+                    ),
+                    ..._tips.map(
+                      (t) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.auto_awesome,
+                                size: 16, color: kAccent),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    t.packTitle,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: kAccent.withOpacity(0.9),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    t.tip,
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.78),
+                                      height: 1.35,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
+
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -422,10 +487,14 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                     icon: Icons.verified_outlined,
                   ),
                   ...{
-                    'evidence_recorded': ('Evidence recorded', Icons.description_outlined),
-                    'hypotheses_scored': ('Hypotheses scored', Icons.insights_outlined),
-                    'next_test_executed': ('Next test executed', Icons.play_circle_outline),
-                    'repair_verified': ('Repair verified', Icons.task_alt_rounded),
+                    'evidence_recorded':
+                        ('Evidence recorded', Icons.description_outlined),
+                    'hypotheses_scored':
+                        ('Hypotheses scored', Icons.insights_outlined),
+                    'next_test_executed':
+                        ('Next test executed', Icons.play_circle_outline),
+                    'repair_verified':
+                        ('Repair verified', Icons.task_alt_rounded),
                   }.entries.map((e) {
                     final doneItem = _case.verification[e.key] ?? false;
                     return InkWell(
@@ -484,7 +553,6 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
             ),
             const SizedBox(height: 14),
 
-            // Hypotheses
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -536,7 +604,6 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
             ),
             const SizedBox(height: 14),
 
-            // Evidence
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -655,7 +722,6 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
             ),
             const SizedBox(height: 14),
 
-            // Commands
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -669,6 +735,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                     'route -n get default',
                     'ipconfig getifaddr en0',
                     'networksetup -getinfo Wi-Fi',
+                    'arp -a',
                   ].map(
                     (cmd) => Padding(
                       padding: const EdgeInsets.only(bottom: 8),
