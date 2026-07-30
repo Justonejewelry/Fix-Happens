@@ -6,22 +6,24 @@
   <title>Fix Happens — Case Workspace</title>
   <style>
     :root {
-      --glass-bg: rgba(255, 255, 255, 0.14);
-      --glass-border: rgba(255, 255, 255, 0.34);
-      --glass-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
+      --glass-bg: rgba(255, 255, 255, 0.12);
+      --glass-border: rgba(255, 255, 255, 0.28);
+      --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
       --text: rgba(255, 255, 255, 0.96);
-      --muted: rgba(255, 255, 255, 0.72);
+      --muted: rgba(255, 255, 255, 0.62);
       --accent: #ff5aa5;
-      --line: rgba(255, 255, 255, 0.16);
-      --surface: rgba(255, 255, 255, 0.08);
-      --surface-strong: rgba(255, 255, 255, 0.12);
-      --blur: 24px;
+      --accent-soft: rgba(255, 90, 165, 0.22);
+      --line: rgba(255, 255, 255, 0.14);
+      --surface: rgba(255, 255, 255, 0.07);
+      --surface-strong: rgba(255, 255, 255, 0.11);
+      --blur: 28px;
+      --ok: #5affe0;
     }
     body.solid {
-      --glass-bg: #181c2e;
-      --glass-border: rgba(255, 255, 255, 0.18);
-      --surface: #1c2033;
-      --surface-strong: #22263a;
+      --glass-bg: #161a2c;
+      --glass-border: rgba(255, 255, 255, 0.14);
+      --surface: #1a1f32;
+      --surface-strong: #222840;
       --blur: 0px;
     }
     * { box-sizing: border-box; }
@@ -30,236 +32,471 @@
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(255, 90, 165, 0.22), transparent 28%),
-        radial-gradient(circle at top right, rgba(255, 255, 255, 0.14), transparent 22%),
-        linear-gradient(135deg, #0f1020 0%, #1a1230 45%, #2d143c 100%);
-      padding: 20px;
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(255, 90, 165, 0.28), transparent 50%),
+        radial-gradient(ellipse 60% 40% at 90% 0%, rgba(120, 90, 255, 0.18), transparent 45%),
+        radial-gradient(circle at 50% 100%, rgba(255, 90, 165, 0.08), transparent 40%),
+        linear-gradient(160deg, #0b0d18 0%, #151028 40%, #1e1235 100%);
+      padding: 16px;
     }
     .shell {
-      max-width: 1600px; margin: 0 auto;
-      display: grid; grid-template-columns: 260px 1fr 340px; gap: 18px;
-      min-height: calc(100vh - 40px);
+      max-width: 1680px; margin: 0 auto;
+      display: grid; grid-template-columns: 272px 1fr 360px; gap: 16px;
+      min-height: calc(100vh - 32px);
     }
     .glass {
-      background: var(--glass-bg); border: 1px solid var(--glass-border);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
       box-shadow: var(--glass-shadow);
-      backdrop-filter: blur(var(--blur)) saturate(160%);
-      -webkit-backdrop-filter: blur(var(--blur)) saturate(160%);
+      backdrop-filter: blur(var(--blur)) saturate(170%);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(170%);
       border-radius: 28px;
     }
-    .sidebar { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .brand { padding: 16px; border-radius: 22px; border: 1px solid var(--line); background: var(--surface-strong); }
-    .brand h1 { margin: 0 0 4px; font-size: 24px; letter-spacing: -0.02em; }
-    .brand p { margin: 0; color: var(--muted); font-size: 13px; }
-    .nav { display: grid; gap: 8px; }
+
+    /* —— Sidebar —— */
+    .sidebar { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px; border-radius: 20px; border: 1px solid var(--line);
+      background: linear-gradient(135deg, var(--accent-soft), var(--surface-strong));
+    }
+    .brand-mark {
+      width: 42px; height: 42px; border-radius: 14px;
+      background: linear-gradient(135deg, #ff5aa5, #c44dff);
+      display: grid; place-items: center;
+      box-shadow: 0 8px 24px rgba(255, 90, 165, 0.35);
+      flex-shrink: 0;
+    }
+    .brand-mark svg { width: 22px; height: 22px; }
+    .brand h1 { margin: 0; font-size: 18px; letter-spacing: -0.03em; }
+    .brand p { margin: 2px 0 0; color: var(--muted); font-size: 11px; }
+
+    .nav { display: grid; gap: 4px; }
     .nav-item {
-      padding: 12px 14px; border-radius: 16px; border: 1px solid var(--line);
-      background: var(--surface); color: var(--text); font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 12px; border-radius: 14px; border: 1px solid transparent;
+      background: transparent; color: var(--muted); font-size: 13.5px; font-weight: 500;
+      cursor: pointer; transition: all 0.18s ease;
     }
+    .nav-item svg { width: 18px; height: 18px; opacity: 0.85; flex-shrink: 0; }
+    .nav-item:hover { background: var(--surface); color: var(--text); border-color: var(--line); }
     .nav-item.active {
-      background: linear-gradient(135deg, rgba(255, 90, 165, 0.38), rgba(255, 255, 255, 0.10));
-      border-color: rgba(255, 90, 165, 0.65);
-      box-shadow: 0 0 0 1px rgba(255, 90, 165, 0.25), 0 8px 24px rgba(255, 90, 165, 0.12);
+      background: linear-gradient(135deg, rgba(255, 90, 165, 0.32), rgba(255, 255, 255, 0.06));
+      border-color: rgba(255, 90, 165, 0.55);
+      color: var(--text);
+      box-shadow: 0 6px 20px rgba(255, 90, 165, 0.12);
     }
-    .case-switcher { margin-top: 4px; }
+    .nav-item.active svg { opacity: 1; color: var(--accent); }
+
+    .case-switcher { margin-top: 2px; flex: 1; min-height: 0; display: flex; flex-direction: column; }
     .case-switcher h4 {
-      margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted);
+      margin: 0 0 8px; font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--muted); display: flex; align-items: center; gap: 6px;
     }
-    .case-actions { display: flex; gap: 8px; margin-bottom: 10px; }
-    .case-actions button {
-      flex: 1; padding: 8px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer;
-      border: 1px solid var(--line); background: var(--surface); color: var(--text);
+    .case-actions { display: flex; gap: 6px; margin-bottom: 10px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 9px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--line); background: var(--surface);
+      color: var(--text); transition: all 0.15s ease;
     }
-    .case-actions button.primary {
-      border-color: rgba(255, 90, 165, 0.5); background: rgba(255, 90, 165, 0.22);
+    .btn svg { width: 14px; height: 14px; }
+    .btn:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.28); }
+    .btn.primary {
+      flex: 1;
+      border-color: rgba(255, 90, 165, 0.55);
+      background: linear-gradient(135deg, rgba(255, 90, 165, 0.45), rgba(255, 90, 165, 0.18));
+      box-shadow: 0 4px 16px rgba(255, 90, 165, 0.15);
     }
+    .btn.primary:hover { box-shadow: 0 6px 22px rgba(255, 90, 165, 0.28); }
+    .btn.ghost { flex: 0 0 auto; opacity: 0.9; }
+
     .case-chip {
       padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line);
-      background: rgba(255,255,255,0.05); margin-bottom: 6px; font-size: 12px; cursor: pointer;
+      background: rgba(255,255,255,0.04); margin-bottom: 6px; font-size: 12px;
+      cursor: pointer; transition: all 0.15s ease;
     }
+    .case-chip:hover { background: rgba(255,255,255,0.08); }
     .case-chip.active {
-      border-color: rgba(255, 90, 165, 0.5); background: rgba(255, 90, 165, 0.12);
+      border-color: rgba(255, 90, 165, 0.5);
+      background: rgba(255, 90, 165, 0.12);
+      box-shadow: inset 0 0 0 1px rgba(255, 90, 165, 0.15);
     }
-    .case-chip .id { color: var(--accent); font-weight: 600; }
+    .case-chip .id { color: var(--accent); font-weight: 700; font-size: 11px; }
     .case-chip .sym {
-      color: var(--muted); display: block; margin-top: 2px;
+      color: var(--muted); display: block; margin-top: 3px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+
     .sidebar-footer {
-      margin-top: auto; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--line);
-      background: var(--surface); font-size: 12px; color: var(--muted); line-height: 1.5;
+      padding: 12px; border-radius: 16px; border: 1px solid var(--line);
+      background: var(--surface); font-size: 11px; color: var(--muted); line-height: 1.5;
     }
-    .shortcuts { margin-top: 6px; font-size: 11px; opacity: 0.85; }
+    .kbd {
+      display: inline-block; padding: 1px 5px; border-radius: 5px;
+      border: 1px solid var(--line); background: rgba(0,0,0,0.25);
+      font-size: 10px; font-family: ui-monospace, Menlo, monospace;
+    }
     .toggle-row {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; margin-top: 10px;
     }
     .toggle {
       width: 40px; height: 22px; border-radius: 999px; border: 1px solid var(--line);
       background: rgba(255,255,255,0.1); position: relative; cursor: pointer;
     }
-    .toggle.on { background: rgba(255, 90, 165, 0.45); border-color: rgba(255, 90, 165, 0.6); }
+    .toggle.on { background: rgba(255, 90, 165, 0.5); border-color: rgba(255, 90, 165, 0.65); }
     .toggle::after {
       content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
       border-radius: 50%; background: #fff; transition: transform 0.15s ease;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
     }
     .toggle.on::after { transform: translateX(18px); }
-    .workspace { padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow: auto; }
-    .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-    .topbar h2 { margin: 0; font-size: 28px; letter-spacing: -0.02em; }
-    .status-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-    .badge {
-      padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
-      background: var(--surface); font-size: 12px; color: var(--muted);
+
+    /* —— Workspace —— */
+    .workspace { padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; overflow: auto; }
+    .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+    .topbar-title {
+      display: flex; align-items: center; gap: 10px;
     }
+    .topbar-title h2 { margin: 0; font-size: 24px; letter-spacing: -0.03em; font-weight: 700; }
+    .status-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line);
+      background: var(--surface); font-size: 11.5px; color: var(--muted); font-weight: 500;
+    }
+    .badge svg { width: 12px; height: 12px; }
     .badge.accent {
-      color: var(--accent); border-color: rgba(255, 90, 165, 0.45);
-      background: rgba(255, 90, 165, 0.15); font-weight: 600;
+      color: #ffc2dc; border-color: rgba(255, 90, 165, 0.45);
+      background: rgba(255, 90, 165, 0.18); font-weight: 600;
+    }
+    .search-wrap { position: relative; min-width: 240px; }
+    .search-wrap svg {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      width: 15px; height: 15px; opacity: 0.5; pointer-events: none;
     }
     .search {
-      min-width: 200px; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--line);
-      background: var(--surface); color: var(--text); outline: none; font-size: 14px;
+      width: 100%; padding: 11px 14px 11px 36px; border-radius: 14px;
+      border: 1px solid var(--line); background: var(--surface);
+      color: var(--text); outline: none; font-size: 13px;
     }
+    .search:focus {
+      border-color: rgba(255, 90, 165, 0.5);
+      box-shadow: 0 0 0 3px rgba(255, 90, 165, 0.12);
+    }
+
+    /* Hero + progress ring */
     .case-hero {
-      padding: 20px; border-radius: 24px; border: 1px solid var(--line); background: var(--surface-strong);
+      padding: 18px 20px; border-radius: 22px; border: 1px solid var(--line);
+      background: linear-gradient(145deg, var(--surface-strong), rgba(255,255,255,0.04));
+      display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: start;
     }
-    .case-hero .symptom { font-size: 22px; font-weight: 700; color: var(--accent); margin: 0 0 8px; }
-    .case-hero .meta { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
-    .progress-wrap { margin-bottom: 14px; }
-    .progress-label {
-      display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px;
+    .case-hero .symptom {
+      font-size: 20px; font-weight: 700; color: #ff8ec4; margin: 0 0 6px;
+      letter-spacing: -0.02em;
     }
-    .progress-track {
-      height: 6px; border-radius: 999px; background: rgba(255, 255, 255, 0.1); overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%; width: 50%; border-radius: 999px;
-      background: linear-gradient(90deg, rgba(255, 90, 165, 0.7), var(--accent));
-      transition: width 0.3s ease;
-    }
+    .case-hero .meta { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .primary-action {
-      display: inline-flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 16px;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 11px 16px; border-radius: 14px;
       border: 1px solid rgba(255, 90, 165, 0.55);
-      background: linear-gradient(135deg, rgba(255, 90, 165, 0.4), rgba(255, 90, 165, 0.18));
-      color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer;
+      background: linear-gradient(135deg, rgba(255, 90, 165, 0.48), rgba(196, 77, 255, 0.22));
+      color: var(--text); font-weight: 600; font-size: 13px; cursor: pointer;
+      box-shadow: 0 8px 24px rgba(255, 90, 165, 0.2);
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
     }
+    .primary-action:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(255, 90, 165, 0.3);
+    }
+    .primary-action svg { width: 16px; height: 16px; }
     .primary-action code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px;
+      opacity: 0.95;
     }
-    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .menu-btn {
+      position: relative;
+    }
+    .menu-panel {
+      display: none; position: absolute; right: 0; top: calc(100% + 6px); z-index: 20;
+      min-width: 180px; padding: 6px; border-radius: 14px;
+      border: 1px solid var(--glass-border); background: rgba(22, 18, 40, 0.95);
+      backdrop-filter: blur(20px); box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+    }
+    .menu-btn.open .menu-panel { display: block; }
+    .menu-item {
+      display: flex; align-items: center; gap: 8px; width: 100%;
+      padding: 9px 10px; border: none; border-radius: 10px;
+      background: transparent; color: var(--text); font-size: 12.5px;
+      cursor: pointer; text-align: left;
+    }
+    .menu-item:hover { background: var(--accent-soft); }
+    .menu-item svg { width: 14px; height: 14px; opacity: 0.8; }
+
+    .progress-ring-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      min-width: 100px;
+    }
+    .progress-ring {
+      width: 88px; height: 88px; position: relative;
+    }
+    .progress-ring svg { transform: rotate(-90deg); }
+    .progress-ring .bg { stroke: rgba(255,255,255,0.1); }
+    .progress-ring .fg {
+      stroke: url(#ringGrad); stroke-linecap: round;
+      transition: stroke-dashoffset 0.4s ease;
+    }
+    .progress-ring .label {
+      position: absolute; inset: 0; display: grid; place-items: center;
+      font-size: 15px; font-weight: 700; letter-spacing: -0.02em;
+    }
+    .progress-ring .sub {
+      font-size: 10px; color: var(--muted); text-align: center; font-weight: 500;
+    }
+
+    /* Step strip */
+    .step-strip {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 14px;
+    }
+    .step {
+      padding: 10px 8px; border-radius: 14px; border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04); text-align: center;
+      font-size: 10.5px; color: var(--muted); font-weight: 500;
+    }
+    .step svg { width: 16px; height: 16px; display: block; margin: 0 auto 5px; opacity: 0.55; }
+    .step.done {
+      border-color: rgba(255, 90, 165, 0.4);
+      background: rgba(255, 90, 165, 0.12);
+      color: #ffc2dc;
+    }
+    .step.done svg { opacity: 1; color: var(--accent); }
+    .step.active {
+      border-color: rgba(255, 90, 165, 0.65);
+      box-shadow: 0 0 0 1px rgba(255, 90, 165, 0.2);
+      color: var(--text);
+    }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
     .pill {
-      padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.18);
-      background: rgba(255, 255, 255, 0.08); font-size: 12px;
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 5px 10px; border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.06); font-size: 11.5px; color: var(--muted);
     }
-    .section-title {
-      margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 0.04em;
+
+    .section-head {
+      display: flex; align-items: center; gap: 8px;
+      margin: 4px 0 10px; font-size: 12px; font-weight: 600;
+      color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em;
     }
+    .section-head svg { width: 14px; height: 14px; opacity: 0.7; }
+
     .timeline { position: relative; display: grid; gap: 0; padding-left: 2px; }
     .timeline::before {
-      content: ""; position: absolute; left: 6px; top: 10px; bottom: 10px; width: 2px;
-      background: linear-gradient(to bottom, rgba(255, 90, 165, 0.5), rgba(255, 255, 255, 0.15));
+      content: ""; position: absolute; left: 15px; top: 14px; bottom: 14px; width: 2px;
+      background: linear-gradient(to bottom, rgba(255, 90, 165, 0.55), rgba(255, 255, 255, 0.1));
       border-radius: 2px;
     }
     .timeline-item {
-      display: grid; grid-template-columns: 14px 1fr; gap: 12px; align-items: start;
+      display: grid; grid-template-columns: 32px 1fr; gap: 10px; align-items: start;
       padding-bottom: 12px; position: relative;
     }
     .timeline-item:last-child { padding-bottom: 0; }
-    .dot {
-      width: 12px; height: 12px; border-radius: 50%; margin-top: 4px; background: var(--accent);
-      box-shadow: 0 0 0 3px rgba(255, 90, 165, 0.25); z-index: 1;
+    .tl-icon {
+      width: 30px; height: 30px; border-radius: 10px;
+      display: grid; place-items: center;
+      background: rgba(255, 90, 165, 0.2); border: 1px solid rgba(255, 90, 165, 0.35);
+      z-index: 1;
     }
-    .dot.muted { background: rgba(255, 255, 255, 0.35); box-shadow: none; }
+    .tl-icon svg { width: 14px; height: 14px; color: var(--accent); }
+    .tl-icon.muted {
+      background: rgba(255,255,255,0.06); border-color: var(--line);
+    }
+    .tl-icon.muted svg { color: var(--muted); }
     .timeline-body {
-      padding: 12px 14px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface);
+      padding: 11px 13px; border-radius: 14px; border: 1px solid var(--line);
+      background: var(--surface);
     }
-    .timeline-body strong { display: block; margin-bottom: 4px; font-size: 14px; }
-    .timeline-body span { font-size: 13px; color: var(--muted); }
-    .stack { padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow: auto; }
+    .timeline-body strong { display: block; margin-bottom: 3px; font-size: 13px; }
+    .timeline-body span { font-size: 12.5px; color: var(--muted); }
+
+    /* —— Right stack —— */
+    .stack { padding: 14px; display: flex; flex-direction: column; gap: 12px; overflow: auto; }
     .panel {
-      padding: 14px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface);
+      padding: 13px; border-radius: 18px; border: 1px solid var(--line);
+      background: var(--surface);
     }
-    .panel h3 {
-      margin: 0 0 12px; font-size: 12px; font-weight: 600; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 0.04em;
+    .panel-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
     }
+    .panel-head h3 {
+      margin: 0; font-size: 11px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.07em;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .panel-head h3 svg { width: 13px; height: 13px; }
+    .panel-head .count {
+      font-size: 11px; font-weight: 600; color: var(--accent);
+      background: var(--accent-soft); padding: 2px 8px; border-radius: 999px;
+    }
+
     .evidence-item, .hyp-item, .cmd-item, .check-item, .empty-state {
-      padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.05); margin-bottom: 8px; font-size: 13px;
+      padding: 9px 11px; border-radius: 12px; border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04); margin-bottom: 7px; font-size: 12.5px;
     }
     .empty-state { color: var(--muted); text-align: center; border-style: dashed; margin-bottom: 0; }
     .evidence-item .type {
-      font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase;
-      letter-spacing: 0.03em; margin-bottom: 2px;
+      font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.04em; margin-bottom: 2px;
+      display: flex; align-items: center; gap: 4px;
     }
-    .add-evidence { display: flex; gap: 8px; margin-top: 10px; }
+    .add-evidence { display: flex; gap: 6px; margin-top: 8px; }
     .add-evidence input {
-      flex: 1; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.06); color: var(--text); outline: none; font-size: 13px;
+      flex: 1; padding: 9px 11px; border-radius: 11px; border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.05); color: var(--text); outline: none; font-size: 12.5px;
     }
+    .add-evidence input:focus { border-color: rgba(255, 90, 165, 0.4); }
     .add-evidence button {
-      padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255, 90, 165, 0.45);
-      background: rgba(255, 90, 165, 0.2); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 9px 12px; border-radius: 11px;
+      border: 1px solid rgba(255, 90, 165, 0.45);
+      background: rgba(255, 90, 165, 0.22); color: var(--text);
+      font-size: 12px; font-weight: 600; cursor: pointer;
     }
-    .hyp-item { display: grid; gap: 6px; }
-    .hyp-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-    .confidence { font-weight: 700; color: var(--accent); white-space: nowrap; font-size: 13px; }
-    .meter { height: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
+    .add-evidence button svg { width: 13px; height: 13px; }
+
+    .hyp-item { display: grid; gap: 5px; }
+    .hyp-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .confidence { font-weight: 700; color: var(--accent); white-space: nowrap; font-size: 12px; }
+    .meter { height: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
     .meter > span {
       display: block; height: 100%; border-radius: 999px;
-      background: linear-gradient(90deg, rgba(255, 90, 165, 0.55), var(--accent));
+      background: linear-gradient(90deg, rgba(255, 90, 165, 0.45), var(--accent));
+      box-shadow: 0 0 8px rgba(255, 90, 165, 0.4);
     }
-    .cmd-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
+    .cmd-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     .cmd-item code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px;
+      overflow: hidden; text-overflow: ellipsis;
     }
     .copy-btn {
-      flex-shrink: 0; padding: 5px 10px; border-radius: 10px; border: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.08); color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer;
+      flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px;
+      padding: 5px 9px; border-radius: 9px; border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.06); color: var(--muted);
+      font-size: 10.5px; font-weight: 600; cursor: pointer;
     }
+    .copy-btn svg { width: 12px; height: 12px; }
     .copy-btn:hover, .copy-btn.copied {
-      color: var(--text); border-color: rgba(255, 90, 165, 0.45); background: rgba(255, 90, 165, 0.18);
+      color: var(--text); border-color: rgba(255, 90, 165, 0.45);
+      background: rgba(255, 90, 165, 0.18);
     }
-    .check-item { display: flex; align-items: center; gap: 10px; }
+
+    .check-item {
+      display: flex; align-items: center; gap: 10px; cursor: default;
+    }
     .check {
-      width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid rgba(255, 255, 255, 0.35); flex-shrink: 0;
+      width: 20px; height: 20px; border-radius: 7px;
+      border: 1.5px solid rgba(255, 255, 255, 0.28); flex-shrink: 0;
+      display: grid; place-items: center;
     }
+    .check svg { width: 12px; height: 12px; opacity: 0; }
     .check.done {
-      background: rgba(255, 90, 165, 0.45); border-color: var(--accent);
+      background: linear-gradient(135deg, rgba(255, 90, 165, 0.7), rgba(196, 77, 255, 0.5));
+      border-color: transparent;
       box-shadow: 0 0 0 2px rgba(255, 90, 165, 0.15);
     }
-    @media (max-width: 1100px) {
+    .check.done svg { opacity: 1; }
+
+    @media (max-width: 1180px) {
       .shell { grid-template-columns: 1fr; }
+      .case-hero { grid-template-columns: 1fr; }
+      .progress-ring-wrap { flex-direction: row; gap: 14px; }
     }
   </style>
 </head>
 <body>
+  <!-- SVG defs for progress ring gradient -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#c44dff"/>
+        <stop offset="100%" stop-color="#ff5aa5"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
   <div class="shell">
     <aside class="sidebar glass">
       <div class="brand">
-        <h1>Fix Happens</h1>
-        <p>Shit breaks. Fix Happens.</p>
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+        </div>
+        <div>
+          <h1>Fix Happens</h1>
+          <p>Shit breaks. Fix Happens.</p>
+        </div>
       </div>
-      <div class="nav">
-        <div class="nav-item">Dashboard</div>
-        <div class="nav-item active">Cases</div>
-        <div class="nav-item">Evidence</div>
-        <div class="nav-item">Knowledge</div>
-        <div class="nav-item">Assets</div>
-        <div class="nav-item">Settings</div>
-      </div>
+
+      <nav class="nav">
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          Dashboard
+        </div>
+        <div class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+          Cases
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+          Evidence
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Knowledge
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+          Assets
+        </div>
+        <div class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          Settings
+        </div>
+      </nav>
+
       <div class="case-switcher">
-        <h4>Open cases</h4>
+        <h4>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Open cases
+        </h4>
         <div class="case-actions">
-          <button type="button" class="primary" id="createCaseBtn">+ Create</button>
-          <button type="button" id="closeCaseBtn">Close</button>
+          <button type="button" class="btn primary" id="createCaseBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Create
+          </button>
+          <button type="button" class="btn ghost" id="closeCaseBtn" title="Close active case">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            Close
+          </button>
         </div>
         <div id="caseSwitcherList"></div>
       </div>
+
       <div class="sidebar-footer">
-        Clear Crystal · Liquid Glass<br />
-        v0.8.5 · macOS shell
-        <div class="shortcuts">N next · E evidence · ⌘K search</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          Clear Crystal · v1.0
+        </div>
+        <div>
+          <span class="kbd">N</span> next ·
+          <span class="kbd">E</span> evidence ·
+          <span class="kbd">⌘K</span> search
+        </div>
         <div class="toggle-row">
           <span>Solid surfaces</span>
           <div class="toggle" id="solidToggle" title="Reduced transparency"></div>
@@ -270,55 +507,125 @@
     <main class="workspace glass">
       <div class="topbar">
         <div>
-          <h2>Case Workspace</h2>
+          <div class="topbar-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+            <h2>Case Workspace</h2>
+          </div>
           <div class="status-row">
-            <span class="badge accent" id="statusBadge">Diagnosing</span>
-            <span class="badge" id="deviceBadge">MacBook Pro</span>
+            <span class="badge accent" id="statusBadge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              Diagnosing
+            </span>
+            <span class="badge" id="deviceBadge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+              MacBook Pro
+            </span>
             <span class="badge" id="confBadge">Confidence 94%</span>
             <span class="badge" id="caseBadge">Case #1042</span>
             <span class="badge" id="engineBadge">Engine</span>
           </div>
         </div>
-        <input class="search" id="search" placeholder="Search cases, commands, symptoms… (⌘K)" />
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input class="search" id="search" placeholder="Search cases, commands…" />
+        </div>
       </div>
 
       <section class="case-hero">
-        <p class="symptom" id="symptom">Wi-Fi connected but no internet</p>
-        <p class="meta" id="meta">Opened 14 min ago · Asset: MacBook Pro 16" · Platform: macOS</p>
-        <div class="progress-wrap">
-          <div class="progress-label">
-            <span>Verification progress</span>
-            <span id="progressText">2 / 4</span>
+        <div>
+          <p class="symptom" id="symptom">Wi-Fi connected but no internet</p>
+          <p class="meta" id="meta">Opened · Platform: macOS</p>
+          <div class="hero-actions">
+            <button class="primary-action" id="nextTest" type="button" title="Copy next test (N)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Next test
+              <code id="nextCmd">ipconfig getifaddr en0</code>
+            </button>
+            <div class="menu-btn" id="moreMenu">
+              <button type="button" class="btn" id="moreMenuBtn" aria-haspopup="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                More
+              </button>
+              <div class="menu-panel" role="menu">
+                <button type="button" class="menu-item" id="menuExport">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Export case notes
+                </button>
+                <button type="button" class="menu-item" id="menuCopyAll">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  Copy all evidence
+                </button>
+                <button type="button" class="menu-item" id="closeCaseBtnMenu">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  Close case
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="progressFill"></div>
+          <div class="pill-row" id="pillRow"></div>
+          <div class="step-strip" id="stepStrip">
+            <div class="step done" data-step="0">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+              Evidence
+            </div>
+            <div class="step done" data-step="1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              Hypotheses
+            </div>
+            <div class="step active" data-step="2" id="stepTest">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Test
+            </div>
+            <div class="step" data-step="3" id="stepRepair">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Verified
+            </div>
           </div>
         </div>
-        <button class="primary-action" id="nextTest" type="button" title="Copy next test (N)">
-          Next test → <code id="nextCmd">ipconfig getifaddr en0</code>
-        </button>
-        <div class="pill-row" id="pillRow"></div>
+
+        <div class="progress-ring-wrap">
+          <div class="progress-ring">
+            <svg width="88" height="88" viewBox="0 0 88 88">
+              <circle class="bg" cx="44" cy="44" r="36" fill="none" stroke-width="7"/>
+              <circle class="fg" id="progressRing" cx="44" cy="44" r="36" fill="none" stroke-width="7"
+                stroke-dasharray="226.2" stroke-dashoffset="113"/>
+            </svg>
+            <div class="label" id="progressText">2/4</div>
+          </div>
+          <div class="sub">Verification</div>
+        </div>
+        <!-- hidden fill used by existing app.js -->
+        <div class="progress-fill" id="progressFill" style="display:none;width:50%"></div>
       </section>
 
       <div>
-        <h3 class="section-title">Case Timeline</h3>
+        <div class="section-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Case Timeline
+        </div>
         <div class="timeline" id="timeline">
           <div class="timeline-item">
-            <div class="dot"></div>
+            <div class="tl-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            </div>
             <div class="timeline-body">
               <strong>Evidence collected</strong>
               <span>Gather symptoms and command output.</span>
             </div>
           </div>
           <div class="timeline-item">
-            <div class="dot"></div>
+            <div class="tl-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
             <div class="timeline-body">
               <strong>Hypotheses ranked</strong>
               <span id="timelineHyp">—</span>
             </div>
           </div>
           <div class="timeline-item">
-            <div class="dot muted"></div>
+            <div class="tl-icon muted">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
             <div class="timeline-body">
               <strong>Verification</strong>
               <span>Run next test and confirm repair.</span>
@@ -330,37 +637,142 @@
 
     <aside class="stack glass">
       <div class="panel" id="evidencePanel">
-        <h3>Evidence</h3>
+        <div class="panel-head">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            Evidence
+          </h3>
+          <span class="count" id="evidenceCount">0</span>
+        </div>
         <div id="evidenceList"></div>
         <div class="add-evidence">
-          <input id="evidenceInput" type="text" placeholder="Add evidence note… (E)" />
-          <button type="button" id="addEvidenceBtn">Add</button>
+          <input id="evidenceInput" type="text" placeholder="Add evidence note…" />
+          <button type="button" id="addEvidenceBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+            Add
+          </button>
         </div>
       </div>
+
       <div class="panel">
-        <h3>Hypotheses</h3>
+        <div class="panel-head">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Hypotheses
+          </h3>
+        </div>
         <div id="hypList"></div>
       </div>
+
       <div class="panel">
-        <h3>Commands</h3>
+        <div class="panel-head">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            Commands
+          </h3>
+        </div>
         <div id="cmdList">
-          <div class="cmd-item"><code>ping 8.8.8.8</code><button class="copy-btn" type="button" data-cmd="ping 8.8.8.8">Copy</button></div>
-          <div class="cmd-item"><code>route -n get default</code><button class="copy-btn" type="button" data-cmd="route -n get default">Copy</button></div>
-          <div class="cmd-item"><code>ipconfig getifaddr en0</code><button class="copy-btn" type="button" data-cmd="ipconfig getifaddr en0">Copy</button></div>
-          <div class="cmd-item"><code>networksetup -getinfo Wi-Fi</code><button class="copy-btn" type="button" data-cmd="networksetup -getinfo Wi-Fi">Copy</button></div>
+          <div class="cmd-item"><code>ping 8.8.8.8</code><button class="copy-btn" type="button" data-cmd="ping 8.8.8.8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
+          <div class="cmd-item"><code>route -n get default</code><button class="copy-btn" type="button" data-cmd="route -n get default"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
+          <div class="cmd-item"><code>ipconfig getifaddr en0</code><button class="copy-btn" type="button" data-cmd="ipconfig getifaddr en0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
+          <div class="cmd-item"><code>networksetup -getinfo Wi-Fi</code><button class="copy-btn" type="button" data-cmd="networksetup -getinfo Wi-Fi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
         </div>
       </div>
+
       <div class="panel">
-        <h3>Verification</h3>
-        <div class="check-item"><div class="check done"></div><span>Evidence recorded</span></div>
-        <div class="check-item"><div class="check done"></div><span>Hypotheses scored</span></div>
-        <div class="check-item"><div class="check" id="checkTest"></div><span>Next test executed</span></div>
-        <div class="check-item"><div class="check"></div><span>Repair verified</span></div>
+        <div class="panel-head">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Verification
+          </h3>
+        </div>
+        <div class="check-item"><div class="check done"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span>Evidence recorded</span></div>
+        <div class="check-item"><div class="check done"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span>Hypotheses scored</span></div>
+        <div class="check-item"><div class="check" id="checkTest"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span>Next test executed</span></div>
+        <div class="check-item"><div class="check" id="checkRepair"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span>Repair verified</span></div>
       </div>
     </aside>
   </div>
 
   <script src="storage.js"></script>
   <script src="app.js"></script>
+  <script>
+    /* UI chrome: menus + sync circular progress with #progressFill / #progressText */
+    (function () {
+      const menu = document.getElementById('moreMenu');
+      const btn = document.getElementById('moreMenuBtn');
+      if (btn && menu) {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          menu.classList.toggle('open');
+        });
+        document.addEventListener('click', () => menu.classList.remove('open'));
+      }
+      const closeMenu = document.getElementById('closeCaseBtnMenu');
+      if (closeMenu) {
+        closeMenu.addEventListener('click', () => {
+          document.getElementById('closeCaseBtn')?.click();
+          menu?.classList.remove('open');
+        });
+      }
+      document.getElementById('menuCopyAll')?.addEventListener('click', async () => {
+        const items = [...document.querySelectorAll('#evidenceList .evidence-item')]
+          .map(el => el.innerText).join('\n');
+        if (items) await navigator.clipboard.writeText(items);
+        menu?.classList.remove('open');
+      });
+      document.getElementById('menuExport')?.addEventListener('click', () => {
+        const symptom = document.getElementById('symptom')?.textContent || '';
+        const hyp = document.getElementById('timelineHyp')?.textContent || '';
+        const items = [...document.querySelectorAll('#evidenceList .evidence-item')]
+          .map(el => el.innerText).join('\n');
+        const blob = new Blob(
+          ['Fix Happens case export\n\nSymptom: ' + symptom + '\n\nHypotheses: ' + hyp + '\n\nEvidence:\n' + items],
+          { type: 'text/plain' }
+        );
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'fix-happens-case.txt';
+        a.click();
+        menu?.classList.remove('open');
+      });
+
+      const CIRC = 2 * Math.PI * 36; // r=36
+      function syncRing() {
+        const fill = document.getElementById('progressFill');
+        const ring = document.getElementById('progressRing');
+        const label = document.getElementById('progressText');
+        const countEl = document.getElementById('evidenceCount');
+        if (countEl) {
+          const n = document.querySelectorAll('#evidenceList .evidence-item').length;
+          countEl.textContent = String(n);
+        }
+        if (!fill || !ring) return;
+        let pct = parseFloat(fill.style.width) || 50;
+        if (String(fill.style.width).includes('%')) pct = parseFloat(fill.style.width);
+        pct = Math.max(0, Math.min(100, pct));
+        ring.style.strokeDasharray = String(CIRC);
+        ring.style.strokeDashoffset = String(CIRC * (1 - pct / 100));
+        const done = Math.round((pct / 100) * 4);
+        if (label && !label.textContent.includes('/')) {
+          /* keep app.js text if it sets n/4 */
+        }
+        const stepTest = document.getElementById('stepTest');
+        const stepRepair = document.getElementById('stepRepair');
+        if (pct >= 75 && stepTest) stepTest.classList.add('done');
+        if (pct >= 100 && stepRepair) {
+          stepRepair.classList.add('done');
+          stepRepair.classList.add('active');
+        }
+      }
+      const obs = new MutationObserver(syncRing);
+      const fill = document.getElementById('progressFill');
+      if (fill) obs.observe(fill, { attributes: true, attributeFilter: ['style'] });
+      const list = document.getElementById('evidenceList');
+      if (list) obs.observe(list, { childList: true, subtree: true });
+      syncRing();
+      setInterval(syncRing, 800);
+    })();
+  </script>
 </body>
 </html>
