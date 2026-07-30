@@ -1,0 +1,10 @@
+{
+  "id": "display-graphics",
+  "name": "Display & Graphics Diagnostics",
+  "version": "1.0.0",
+  "entryPoint": "index.js",
+  "supportedPlatforms": ["macos", "android"],
+  "permissions": [],
+  "capabilities": ["suggest"],
+  "description": "High-value diagnostic plugin for external monitors, black screens, GPU hangs, resolution mismatches, and brightness issues"
+}

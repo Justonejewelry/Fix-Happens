@@ -1,0 +1,10 @@
+{
+  "id": "usb-peripheral",
+  "name": "USB & Peripheral Diagnostics",
+  "version": "1.0.0",
+  "entryPoint": "index.js",
+  "supportedPlatforms": ["macos", "android"],
+  "permissions": [],
+  "capabilities": ["suggest"],
+  "description": "High-value diagnostic plugin for USB hubs, keyboards, mice, external devices, enumeration failures, and sleep disconnects"
+}

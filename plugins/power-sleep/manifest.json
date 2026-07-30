@@ -1,0 +1,10 @@
+{
+  "id": "power-sleep",
+  "name": "Power & Sleep Diagnostics",
+  "version": "1.0.0",
+  "entryPoint": "index.js",
+  "supportedPlatforms": ["macos", "android"],
+  "permissions": [],
+  "capabilities": ["suggest"],
+  "description": "High-value diagnostic plugin for sleep/wake failures, battery drain, clamshell mode, Power Nap, and pmset issues"
+}

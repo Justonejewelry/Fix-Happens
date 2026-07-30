@@ -1,0 +1,10 @@
+{
+  "id": "printer-diagnostics",
+  "name": "Printer Diagnostics",
+  "version": "1.0.0",
+  "entryPoint": "index.js",
+  "supportedPlatforms": ["macos", "android"],
+  "permissions": [],
+  "capabilities": ["suggest"],
+  "description": "High-value diagnostic plugin for CUPS queues, offline printers, driver timeouts, and USB/network print issues"
+}
