@@ -1,7 +1,7 @@
 /**
  * Run registered plugins against a diagnostic context.
  * Plugins return soft suggestions; they do not mutate the case store.
- * Optional recommendedScans are plan IDs for the allowlisted scan runner.
+ * Optional recommendedScans / recommendedFixes are plan IDs for allowlisted runners.
  */
 
 const registry = require('./pluginRegistry');
@@ -14,9 +14,20 @@ const registry = require('./pluginRegistry');
  * @property {string} [device]
  */
 
+function mapPlans(list) {
+  if (!Array.isArray(list)) return [];
+  return list
+    .filter((s) => s && typeof s.planId === 'string')
+    .map((s) => ({
+      planId: String(s.planId),
+      params: s.params && typeof s.params === 'object' ? s.params : {},
+      label: s.label ? String(s.label) : undefined
+    }));
+}
+
 /**
  * @param {DiagnoseContext} context
- * @returns {Array<{pluginId:string, hypotheses?:object[], tips?:string[], nextTests?:string[], recommendedScans?:object[], error?:string}>}
+ * @returns {Array<object>}
  */
 function runAll(context) {
   const results = [];
@@ -34,21 +45,13 @@ function runAll(context) {
     if (!plugin) continue;
     try {
       const out = plugin.diagnose(safeContext) || {};
-      const recommendedScans = Array.isArray(out.recommendedScans)
-        ? out.recommendedScans
-            .filter((s) => s && typeof s.planId === 'string')
-            .map((s) => ({
-              planId: String(s.planId),
-              params: s.params && typeof s.params === 'object' ? s.params : {},
-              label: s.label ? String(s.label) : undefined
-            }))
-        : [];
       results.push({
         pluginId: plugin.id,
         hypotheses: Array.isArray(out.hypotheses) ? out.hypotheses : [],
         tips: Array.isArray(out.tips) ? out.tips : [],
         nextTests: Array.isArray(out.nextTests) ? out.nextTests : [],
-        recommendedScans
+        recommendedScans: mapPlans(out.recommendedScans),
+        recommendedFixes: mapPlans(out.recommendedFixes)
       });
     } catch (e) {
       results.push({
@@ -57,6 +60,7 @@ function runAll(context) {
         tips: [],
         nextTests: [],
         recommendedScans: [],
+        recommendedFixes: [],
         error: e.message || String(e)
       });
     }

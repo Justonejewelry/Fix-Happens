@@ -1,0 +1,34 @@
+{
+  "id": "boost",
+  "title": "System & Network Booster",
+  "version": 1,
+  "category": "performance",
+  "keywords": [
+    "boost",
+    "slow",
+    "latency",
+    "dns",
+    "proxy",
+    "wifi",
+    "dhcp",
+    "performance",
+    "optimize",
+    "flush",
+    "cache"
+  ],
+  "relatedCauses": [
+    "Stale / Misconfigured DNS",
+    "DHCP Failure",
+    "Proxy / VPN Residue",
+    "Wi-Fi Link Instability",
+    "Network Performance Degradation",
+    "User Cache Pressure"
+  ],
+  "tips": [
+    "Booster order: measure (ping / networkQuality) → flush DNS → disable leftover proxies → optional public DNS → Wi-Fi power cycle → renew DHCP last.",
+    "Self-assigned 169.254.x.x almost always means DHCP failed — renew the lease before chasing DNS.",
+    "Leftover HTTP/HTTPS proxies after VPN disconnect block apps that never show a clear error — disable proxies on the active service.",
+    "Prefer allowlisted one-click fixes in Fix Happens over pasting shell commands from the web.",
+    "networkQuality -s is read-only and a good before/after check when applying boost steps."
+  ]
+}
