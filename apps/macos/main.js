@@ -1,12 +1,42 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
-let db;
+let db = null;
+let knowledge = null;
+let caseContract = null;
+let pluginExecutor = null;
+let pluginRegistry = null;
+
 try {
   db = require('./db');
 } catch (e) {
   console.error('db load failed', e);
-  db = null;
+}
+
+try {
+  knowledge = require(path.join(__dirname, '..', '..', 'core', 'knowledgeLoader.js'));
+} catch (e) {
+  console.error('knowledgeLoader failed', e);
+}
+
+try {
+  caseContract = require(path.join(__dirname, '..', '..', 'core', 'caseContract.js'));
+} catch (e) {
+  console.error('caseContract failed', e);
+}
+
+try {
+  const { loadPlugins } = require(path.join(__dirname, '..', '..', 'core', 'pluginLoader.js'));
+  pluginExecutor = require(path.join(__dirname, '..', '..', 'core', 'pluginExecutor.js'));
+  pluginRegistry = require(path.join(__dirname, '..', '..', 'core', 'pluginRegistry.js'));
+  const pluginsDir = path.join(__dirname, '..', '..', 'plugins');
+  const result = loadPlugins(pluginsDir, { platform: process.platform, register: true });
+  if (result.errors && result.errors.length) {
+    console.warn('plugin load errors', result.errors);
+  }
+  console.log('plugins loaded', result.loaded.map((p) => p.id));
+} catch (e) {
+  console.error('plugin system failed', e);
 }
 
 function createWindow() {
@@ -28,20 +58,58 @@ function createWindow() {
 }
 
 function wireIpc() {
-  if (!db) return;
-  ipcMain.handle('db:listOpenCases', () => db.listOpenCases());
-  ipcMain.handle('db:getCase', (_e, id) => db.getCase(id));
-  ipcMain.handle('db:createCase', (_e, payload) => db.createCase(payload || {}));
-  ipcMain.handle('db:closeCase', (_e, id, resolution) => db.closeCase(id, resolution));
-  ipcMain.handle('db:addEvidence', (_e, caseId, type, value) =>
-    db.addEvidence(caseId, type, value)
-  );
-  ipcMain.handle('db:saveHypotheses', (_e, caseId, ranked) =>
-    db.saveHypotheses(caseId, ranked)
-  );
-  ipcMain.handle('db:getMeta', () => db.getMeta());
-  ipcMain.handle('db:updateMeta', (_e, patch) => db.updateMeta(patch || {}));
-  ipcMain.handle('db:searchCases', (_e, q) => db.searchCases(q));
+  if (db) {
+    ipcMain.handle('db:listOpenCases', () => db.listOpenCases());
+    ipcMain.handle('db:getCase', (_e, id) => db.getCase(id));
+    ipcMain.handle('db:createCase', (_e, payload) => db.createCase(payload || {}));
+    ipcMain.handle('db:closeCase', (_e, id, resolution) => db.closeCase(id, resolution));
+    ipcMain.handle('db:addEvidence', (_e, caseId, type, value) =>
+      db.addEvidence(caseId, type, value)
+    );
+    ipcMain.handle('db:saveHypotheses', (_e, caseId, ranked) =>
+      db.saveHypotheses(caseId, ranked)
+    );
+    ipcMain.handle('db:getMeta', () => db.getMeta());
+    ipcMain.handle('db:updateMeta', (_e, patch) => db.updateMeta(patch || {}));
+    ipcMain.handle('db:searchCases', (_e, q) => db.searchCases(q));
+  }
+
+  ipcMain.handle('knowledge:list', () => {
+    if (!knowledge) return { packs: [], errors: [{ error: 'knowledgeLoader unavailable' }] };
+    try {
+      return knowledge.loadAll();
+    } catch (e) {
+      return { packs: [], errors: [{ error: e.message }] };
+    }
+  });
+
+  ipcMain.handle('knowledge:get', (_e, name) => {
+    if (!knowledge) throw new Error('knowledgeLoader unavailable');
+    return knowledge.loadKnowledgePack(name);
+  });
+
+  ipcMain.handle('plugins:list', () => {
+    if (!pluginRegistry) return [];
+    return pluginRegistry.list();
+  });
+
+  ipcMain.handle('plugins:run', (_e, context) => {
+    if (!pluginExecutor) return [];
+    try {
+      return pluginExecutor.runAll(context || {});
+    } catch (e) {
+      return [{ pluginId: '*', error: e.message, hypotheses: [], tips: [], nextTests: [] }];
+    }
+  });
+
+  ipcMain.handle('case:export', (_e, caseId) => {
+    if (!db || !caseContract) {
+      throw new Error('Export unavailable');
+    }
+    const full = db.getCase(caseId);
+    if (!full) throw new Error('Case not found: ' + caseId);
+    return caseContract.toArtifact(full);
+  });
 }
 
 app.whenReady().then(() => {

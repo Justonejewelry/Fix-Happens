@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'screens/case_list_screen.dart';
+import 'screens/home_shell.dart';
 
 void main() => runApp(const FixHappensApp());
 
@@ -22,8 +22,20 @@ class FixHappensApp extends StatelessWidget {
           brightness: Brightness.dark,
         ),
         scaffoldBackgroundColor: kBg,
+        navigationBarTheme: NavigationBarThemeData(
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: kAccent,
+              );
+            }
+            return const TextStyle(fontSize: 12, color: Colors.white54);
+          }),
+        ),
       ),
-      home: const CaseListScreen(),
+      home: const HomeShell(),
     );
   }
 }

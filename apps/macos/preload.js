@@ -1,5 +1,5 @@
 /**
- * Electron preload — core engine + durable DB bridge.
+ * Electron preload — engine, durable DB, knowledge, plugins, export.
  */
 const { contextBridge, ipcRenderer } = require('electron');
 const path = require('path');
@@ -37,5 +37,22 @@ contextBridge.exposeInMainWorld('FixHappensDB', {
   getMeta: () => ipcRenderer.invoke('db:getMeta'),
   updateMeta: (patch) => ipcRenderer.invoke('db:updateMeta', patch),
   searchCases: (q) => ipcRenderer.invoke('db:searchCases', q),
+  available: true
+});
+
+contextBridge.exposeInMainWorld('FixHappensKnowledge', {
+  list: () => ipcRenderer.invoke('knowledge:list'),
+  get: (name) => ipcRenderer.invoke('knowledge:get', name),
+  available: true
+});
+
+contextBridge.exposeInMainWorld('FixHappensPlugins', {
+  list: () => ipcRenderer.invoke('plugins:list'),
+  run: (context) => ipcRenderer.invoke('plugins:run', context),
+  available: true
+});
+
+contextBridge.exposeInMainWorld('FixHappensExport', {
+  exportCase: (caseId) => ipcRenderer.invoke('case:export', caseId),
   available: true
 });
