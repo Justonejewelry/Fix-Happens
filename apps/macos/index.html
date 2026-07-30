@@ -49,7 +49,7 @@
       border-radius: 28px;
     }
 
-    /* ── Left sidebar ── */
+    /* Sidebar */
     .sidebar {
       padding: 16px;
       display: flex;
@@ -64,23 +64,10 @@
       background: var(--surface-strong);
     }
 
-    .brand h1 {
-      margin: 0 0 4px;
-      font-size: 24px;
-      letter-spacing: -0.02em;
-    }
+    .brand h1 { margin: 0 0 4px; font-size: 24px; letter-spacing: -0.02em; }
+    .brand p { margin: 0; color: var(--muted); font-size: 13px; }
 
-    .brand p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .nav {
-      display: grid;
-      gap: 8px;
-      flex: 1;
-    }
+    .nav { display: grid; gap: 8px; flex: 1; }
 
     .nav-item {
       padding: 12px 14px;
@@ -89,13 +76,18 @@
       background: var(--surface);
       color: var(--text);
       font-size: 14px;
-      cursor: default;
-      transition: background 0.15s ease, border-color 0.15s ease;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.11);
     }
 
     .nav-item.active {
-      background: linear-gradient(135deg, rgba(255, 90, 165, 0.32), rgba(255, 255, 255, 0.10));
-      border-color: rgba(255, 90, 165, 0.55);
+      background: linear-gradient(135deg, rgba(255, 90, 165, 0.38), rgba(255, 255, 255, 0.10));
+      border-color: rgba(255, 90, 165, 0.65);
+      box-shadow: 0 0 0 1px rgba(255, 90, 165, 0.25), 0 8px 24px rgba(255, 90, 165, 0.12);
     }
 
     .sidebar-footer {
@@ -105,9 +97,16 @@
       background: var(--surface);
       font-size: 12px;
       color: var(--muted);
+      line-height: 1.5;
     }
 
-    /* ── Center workspace ── */
+    .shortcuts {
+      margin-top: 6px;
+      font-size: 11px;
+      opacity: 0.85;
+    }
+
+    /* Workspace */
     .workspace {
       padding: 20px;
       display: flex;
@@ -163,6 +162,11 @@
       font-size: 14px;
     }
 
+    .search:focus {
+      border-color: rgba(255, 90, 165, 0.5);
+      box-shadow: 0 0 0 3px rgba(255, 90, 165, 0.15);
+    }
+
     .case-hero {
       padding: 20px;
       border-radius: 24px;
@@ -180,7 +184,33 @@
     .case-hero .meta {
       color: var(--muted);
       font-size: 14px;
-      margin: 0 0 14px;
+      margin: 0 0 12px;
+    }
+
+    .progress-wrap {
+      margin-bottom: 14px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .progress-track {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 50%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255, 90, 165, 0.7), var(--accent));
     }
 
     .primary-action {
@@ -189,32 +219,65 @@
       gap: 10px;
       padding: 12px 18px;
       border-radius: 16px;
-      border: 1px solid rgba(255, 90, 165, 0.5);
-      background: linear-gradient(135deg, rgba(255, 90, 165, 0.35), rgba(255, 90, 165, 0.15));
+      border: 1px solid rgba(255, 90, 165, 0.55);
+      background: linear-gradient(135deg, rgba(255, 90, 165, 0.4), rgba(255, 90, 165, 0.18));
       color: var(--text);
       font-weight: 600;
       font-size: 14px;
-      cursor: default;
+      cursor: pointer;
+      transition: box-shadow 0.2s ease, transform 0.15s ease;
+    }
+
+    .primary-action:hover {
+      box-shadow: 0 0 0 1px rgba(255, 90, 165, 0.35), 0 10px 28px rgba(255, 90, 165, 0.18);
     }
 
     .primary-action code {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 13px;
-      opacity: 0.95;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .pill {
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 12px;
     }
 
     .section-title {
       margin: 0 0 10px;
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 600;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
 
+    /* Timeline with connector */
     .timeline {
+      position: relative;
       display: grid;
-      gap: 10px;
+      gap: 0;
+      padding-left: 2px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 10px;
+      bottom: 10px;
+      width: 2px;
+      background: linear-gradient(to bottom, rgba(255, 90, 165, 0.5), rgba(255, 255, 255, 0.15));
+      border-radius: 2px;
     }
 
     .timeline-item {
@@ -222,7 +285,11 @@
       grid-template-columns: 14px 1fr;
       gap: 12px;
       align-items: start;
+      padding-bottom: 12px;
+      position: relative;
     }
+
+    .timeline-item:last-child { padding-bottom: 0; }
 
     .dot {
       width: 12px;
@@ -231,6 +298,7 @@
       margin-top: 4px;
       background: var(--accent);
       box-shadow: 0 0 0 3px rgba(255, 90, 165, 0.25);
+      z-index: 1;
     }
 
     .dot.muted {
@@ -256,7 +324,7 @@
       color: var(--muted);
     }
 
-    /* ── Right stack ── */
+    /* Right stack */
     .stack {
       padding: 16px;
       display: flex;
@@ -274,7 +342,7 @@
 
     .panel h3 {
       margin: 0 0 12px;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--muted);
       text-transform: uppercase;
@@ -296,9 +364,7 @@
     .evidence-item:last-child,
     .hyp-item:last-child,
     .cmd-item:last-child,
-    .check-item:last-child {
-      margin-bottom: 0;
-    }
+    .check-item:last-child { margin-bottom: 0; }
 
     .evidence-item .type {
       font-size: 11px;
@@ -306,9 +372,47 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.03em;
+      margin-bottom: 2px;
+    }
+
+    .add-evidence {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .add-evidence input {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      outline: none;
+      font-size: 13px;
+    }
+
+    .add-evidence input:focus {
+      border-color: rgba(255, 90, 165, 0.45);
+    }
+
+    .add-evidence button {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 90, 165, 0.45);
+      background: rgba(255, 90, 165, 0.2);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
     }
 
     .hyp-item {
+      display: grid;
+      gap: 6px;
+    }
+
+    .hyp-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -319,11 +423,55 @@
       font-weight: 700;
       color: var(--accent);
       white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .meter {
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+    }
+
+    .meter > span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(255, 90, 165, 0.55), var(--accent));
+    }
+
+    .cmd-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
     }
 
     .cmd-item code {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .copy-btn {
+      flex-shrink: 0;
+      padding: 5px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .copy-btn:hover,
+    .copy-btn.copied {
+      color: var(--text);
+      border-color: rgba(255, 90, 165, 0.45);
+      background: rgba(255, 90, 165, 0.18);
     }
 
     .check-item {
@@ -341,38 +489,19 @@
     }
 
     .check.done {
-      background: rgba(255, 90, 165, 0.4);
+      background: rgba(255, 90, 165, 0.45);
       border-color: var(--accent);
-    }
-
-    .pill-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .pill {
-      padding: 7px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      background: rgba(255, 255, 255, 0.08);
-      font-size: 12px;
+      box-shadow: 0 0 0 2px rgba(255, 90, 165, 0.15);
     }
 
     @media (max-width: 1100px) {
-      .shell {
-        grid-template-columns: 1fr;
-      }
-      .sidebar, .stack {
-        min-height: auto;
-      }
+      .shell { grid-template-columns: 1fr; }
+      .sidebar, .stack { min-height: auto; }
     }
   </style>
 </head>
 <body>
   <div class="shell">
-    <!-- Left navigation -->
     <aside class="sidebar glass">
       <div class="brand">
         <h1>Fix Happens</h1>
@@ -390,11 +519,11 @@
 
       <div class="sidebar-footer">
         Clear Crystal · Liquid Glass<br />
-        v0.8.0 · macOS shell
+        v0.8.1 · macOS shell
+        <div class="shortcuts">N next test · E evidence · ⌘K search</div>
       </div>
     </aside>
 
-    <!-- Center case workspace -->
     <main class="workspace glass">
       <div class="topbar">
         <div>
@@ -406,15 +535,27 @@
             <span class="badge">Case #1042</span>
           </div>
         </div>
-        <input class="search" placeholder="Search cases, commands, symptoms…" />
+        <input class="search" id="search" placeholder="Search cases, commands, symptoms… (⌘K)" />
       </div>
 
       <section class="case-hero">
         <p class="symptom">Wi-Fi connected but no internet</p>
         <p class="meta">Opened 14 min ago · Asset: MacBook Pro 16" · Platform: macOS</p>
-        <div class="primary-action">
-          Next test → <code>ipconfig getifaddr en0</code>
+
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>Verification progress</span>
+            <span>2 / 4</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill"></div>
+          </div>
         </div>
+
+        <button class="primary-action" id="nextTest" type="button" title="Copy next test (N)">
+          Next test → <code>ipconfig getifaddr en0</code>
+        </button>
+
         <div class="pill-row">
           <div class="pill">No route to host</div>
           <div class="pill">No IP assigned</div>
@@ -450,7 +591,6 @@
       </div>
     </main>
 
-    <!-- Right evidence / hypotheses / commands / verification -->
     <aside class="stack glass">
       <div class="panel">
         <h3>Evidence</h3>
@@ -466,34 +606,62 @@
           <div class="type">User Statement</div>
           VPN was used earlier today
         </div>
+        <div class="add-evidence">
+          <input id="evidenceInput" type="text" placeholder="Add evidence note… (E)" />
+          <button type="button" id="addEvidenceBtn">Add</button>
+        </div>
       </div>
 
       <div class="panel">
         <h3>Hypotheses</h3>
         <div class="hyp-item">
-          <span>DHCP Failure</span>
-          <span class="confidence">92%</span>
+          <div class="hyp-top">
+            <span>DHCP Failure</span>
+            <span class="confidence">92%</span>
+          </div>
+          <div class="meter"><span style="width:92%"></span></div>
         </div>
         <div class="hyp-item">
-          <span>Network Preference Corruption</span>
-          <span class="confidence">78%</span>
+          <div class="hyp-top">
+            <span>Network Preference Corruption</span>
+            <span class="confidence">78%</span>
+          </div>
+          <div class="meter"><span style="width:78%"></span></div>
         </div>
         <div class="hyp-item">
-          <span>VPN Route Corruption</span>
-          <span class="confidence">55%</span>
+          <div class="hyp-top">
+            <span>VPN Route Corruption</span>
+            <span class="confidence">55%</span>
+          </div>
+          <div class="meter"><span style="width:55%"></span></div>
         </div>
         <div class="hyp-item">
-          <span>DNS Failure</span>
-          <span class="confidence">40%</span>
+          <div class="hyp-top">
+            <span>DNS Failure</span>
+            <span class="confidence">40%</span>
+          </div>
+          <div class="meter"><span style="width:40%"></span></div>
         </div>
       </div>
 
       <div class="panel">
         <h3>Commands</h3>
-        <div class="cmd-item"><code>ping 8.8.8.8</code></div>
-        <div class="cmd-item"><code>route -n get default</code></div>
-        <div class="cmd-item"><code>ipconfig getifaddr en0</code></div>
-        <div class="cmd-item"><code>networksetup -getinfo Wi-Fi</code></div>
+        <div class="cmd-item">
+          <code>ping 8.8.8.8</code>
+          <button class="copy-btn" type="button" data-cmd="ping 8.8.8.8">Copy</button>
+        </div>
+        <div class="cmd-item">
+          <code>route -n get default</code>
+          <button class="copy-btn" type="button" data-cmd="route -n get default">Copy</button>
+        </div>
+        <div class="cmd-item">
+          <code>ipconfig getifaddr en0</code>
+          <button class="copy-btn" type="button" data-cmd="ipconfig getifaddr en0">Copy</button>
+        </div>
+        <div class="cmd-item">
+          <code>networksetup -getinfo Wi-Fi</code>
+          <button class="copy-btn" type="button" data-cmd="networksetup -getinfo Wi-Fi">Copy</button>
+        </div>
       </div>
 
       <div class="panel">
@@ -517,5 +685,81 @@
       </div>
     </aside>
   </div>
+
+  <script>
+    // Copy command buttons
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const cmd = btn.getAttribute('data-cmd');
+        try {
+          await navigator.clipboard.writeText(cmd);
+          const prev = btn.textContent;
+          btn.textContent = 'Copied';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = prev;
+            btn.classList.remove('copied');
+          }, 1200);
+        } catch (e) {
+          btn.textContent = 'Failed';
+          setTimeout(() => { btn.textContent = 'Copy'; }, 1200);
+        }
+      });
+    });
+
+    // Primary next-test copies the command
+    const nextBtn = document.getElementById('nextTest');
+    if (nextBtn) {
+      nextBtn.addEventListener('click', async () => {
+        const code = nextBtn.querySelector('code');
+        if (!code) return;
+        try {
+          await navigator.clipboard.writeText(code.textContent.trim());
+          nextBtn.style.boxShadow = '0 0 0 1px rgba(255, 90, 165, 0.5), 0 10px 28px rgba(255, 90, 165, 0.25)';
+          setTimeout(() => { nextBtn.style.boxShadow = ''; }, 800);
+        } catch (_) {}
+      });
+    }
+
+    // Simple keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      const tag = (e.target && e.target.tagName) || '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        nextBtn && nextBtn.click();
+      }
+      if (e.key === 'e' || e.key === 'E') {
+        e.preventDefault();
+        const input = document.getElementById('evidenceInput');
+        input && input.focus();
+      }
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        const search = document.getElementById('search');
+        search && search.focus();
+      }
+    });
+
+    // Add evidence (UI-only for now — appends a note chip)
+    const addBtn = document.getElementById('addEvidenceBtn');
+    const evidenceInput = document.getElementById('evidenceInput');
+    if (addBtn && evidenceInput) {
+      addBtn.addEventListener('click', () => {
+        const value = evidenceInput.value.trim();
+        if (!value) return;
+        const panel = evidenceInput.closest('.panel');
+        const item = document.createElement('div');
+        item.className = 'evidence-item';
+        item.innerHTML = '<div class="type">Note</div>' + value.replace(/</g, '<');
+        panel.insertBefore(item, evidenceInput.parentElement);
+        evidenceInput.value = '';
+      });
+      evidenceInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addBtn.click();
+      });
+    }
+  </script>
 </body>
 </html>
