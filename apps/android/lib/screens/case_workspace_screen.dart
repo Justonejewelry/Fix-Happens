@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../models/case_record.dart';
+import '../services/case_store.dart';
 import '../services/diagnostic_engine.dart';
 import '../widgets/crystal_card.dart';
 
@@ -22,10 +23,12 @@ class CaseWorkspaceScreen extends StatefulWidget {
     super.key,
     required this.caseRecord,
     required this.onChanged,
+    required this.store,
   });
 
   final CaseRecord caseRecord;
   final ValueChanged<CaseRecord> onChanged;
+  final CaseStore store;
 
   @override
   State<CaseWorkspaceScreen> createState() => _CaseWorkspaceScreenState();
@@ -51,7 +54,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
 
   List<Hypothesis> get _hypotheses => DiagnosticEngine.score(_case.evidence);
 
-  void _persist() => widget.onChanged(_case);
+  void _notify() => widget.onChanged(_case);
 
   void _syncAutoChecks() {
     final v = Map<String, bool>.from(_case.verification);
@@ -68,18 +71,26 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
     setState(() {
       _case.verification[key] = !(_case.verification[key] ?? false);
     });
-    _persist();
+    _notify();
   }
 
-  void _addEvidence() {
+  Future<void> _addEvidence() async {
     final v = _input.text.trim();
     if (v.isEmpty) return;
-    setState(() {
-      _case.evidence = [..._case.evidence, v];
-      _input.clear();
-      _syncAutoChecks();
-    });
-    _persist();
+    try {
+      await widget.store.addEvidence(_case.id, 'Note', v);
+      setState(() {
+        _case.evidence = [..._case.evidence, v];
+        _input.clear();
+        _syncAutoChecks();
+      });
+      _notify();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not save evidence: $e')),
+      );
+    }
   }
 
   Future<void> _addPhoto(ImageSource source) async {
@@ -90,15 +101,14 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
         maxWidth: 1920,
       );
       if (file == null) return;
+      final label = 'Screenshot: ${file.name}';
+      await widget.store.addEvidence(_case.id, 'Screenshot', label);
       setState(() {
         _case.photoPaths = [..._case.photoPaths, file.path];
-        _case.evidence = [
-          ..._case.evidence,
-          'Screenshot: ${file.name}',
-        ];
+        _case.evidence = [..._case.evidence, label];
         _syncAutoChecks();
       });
-      _persist();
+      _notify();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -158,13 +168,24 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
       ),
     );
     if (ok != true) return;
-    setState(() {
-      _case.closed = true;
-      _case.status = 'Closed';
-      _case.verification['repair_verified'] = true;
-    });
-    _persist();
-    if (mounted) Navigator.of(context).pop();
+    try {
+      await widget.store.closeCase(
+        _case.id,
+        resolution: 'Closed from Android workspace',
+      );
+      setState(() {
+        _case.closed = true;
+        _case.status = 'Resolved';
+        _case.verification['repair_verified'] = true;
+      });
+      _notify();
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Close failed: $e')),
+      );
+    }
   }
 
   @override
@@ -196,7 +217,6 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Hero
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,7 +289,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                           setState(() {
                             _case.verification['next_test_executed'] = true;
                           });
-                          _persist();
+                          _notify();
                           if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Command copied')),
@@ -294,8 +314,6 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
               ),
             ),
             const SizedBox(height: 14),
-
-            // Verification checklist
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,8 +354,6 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
               ),
             ),
             const SizedBox(height: 14),
-
-            // Hypotheses
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,8 +401,6 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
               ),
             ),
             const SizedBox(height: 14),
-
-            // Evidence + photos
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -480,8 +494,6 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
               ),
             ),
             const SizedBox(height: 14),
-
-            // Commands
             CrystalCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
