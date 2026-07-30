@@ -51,6 +51,97 @@
       -webkit-backdrop-filter: blur(var(--blur)) saturate(170%);
       border-radius: 28px;
     }
+
+    /* —— Liquid Glass tooltips —— */
+    [data-tip] {
+      position: relative;
+    }
+    [data-tip]::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%) translateY(4px);
+      padding: 7px 11px;
+      border-radius: 10px;
+      background: rgba(18, 14, 32, 0.96);
+      border: 1px solid rgba(255, 90, 165, 0.35);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+      color: rgba(255, 255, 255, 0.92);
+      font-size: 11.5px;
+      font-weight: 500;
+      line-height: 1.35;
+      white-space: normal;
+      width: max-content;
+      max-width: 240px;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+      z-index: 200;
+    }
+    [data-tip]::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 2px);
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: rgba(255, 90, 165, 0.45);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.15s ease, visibility 0.15s;
+      z-index: 201;
+    }
+    [data-tip]:hover::after,
+    [data-tip]:focus-visible::after {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+    [data-tip]:hover::before,
+    [data-tip]:focus-visible::before {
+      opacity: 1;
+      visibility: visible;
+    }
+    /* Prefer tip below when near top edge */
+    [data-tip="tip-below"]::after,
+    [data-tip-pos="below"]::after {
+      bottom: auto;
+      top: calc(100% + 8px);
+      transform: translateX(-50%) translateY(-4px);
+    }
+    [data-tip-pos="below"]::before {
+      bottom: auto;
+      top: calc(100% + 2px);
+      border-top-color: transparent;
+      border-bottom-color: rgba(255, 90, 165, 0.45);
+    }
+    [data-tip-pos="below"]:hover::after,
+    [data-tip-pos="below"]:focus-visible::after {
+      transform: translateX(-50%) translateY(0);
+    }
+    [data-tip-pos="left"]::after {
+      left: auto;
+      right: calc(100% + 10px);
+      bottom: 50%;
+      transform: translateY(50%) translateX(4px);
+    }
+    [data-tip-pos="left"]::before {
+      left: auto;
+      right: calc(100% + 2px);
+      bottom: 50%;
+      transform: translateY(50%);
+      border-top-color: transparent;
+      border-left-color: rgba(255, 90, 165, 0.45);
+    }
+    [data-tip-pos="left"]:hover::after,
+    [data-tip-pos="left"]:focus-visible::after {
+      transform: translateY(50%) translateX(0);
+    }
+
     .sidebar { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
     .brand {
       display: flex; align-items: center; gap: 12px;
@@ -293,7 +384,7 @@
 
   <div class="shell">
     <aside class="sidebar glass">
-      <div class="brand">
+      <div class="brand" data-tip="Shit breaks. Fix Happens." data-tip-pos="below">
         <div class="brand-mark">
           <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
         </div>
@@ -303,70 +394,73 @@
         </div>
       </div>
       <nav class="nav">
-        <div class="nav-item">Dashboard</div>
-        <div class="nav-item active">Cases</div>
-        <div class="nav-item">Evidence</div>
-        <div class="nav-item" id="navKnowledge">Knowledge</div>
-        <div class="nav-item">Assets</div>
-        <div class="nav-item">Settings</div>
+        <div class="nav-item" data-tip="Overview of open cases and activity" data-tip-pos="below">Dashboard</div>
+        <div class="nav-item active" data-tip="Active case workspace" data-tip-pos="below">Cases</div>
+        <div class="nav-item" data-tip="Browse evidence across cases" data-tip-pos="below">Evidence</div>
+        <div class="nav-item" id="navKnowledge" data-tip="Open knowledge packs and field tips" data-tip-pos="below">Knowledge</div>
+        <div class="nav-item" data-tip="Tracked devices and assets" data-tip-pos="below">Assets</div>
+        <div class="nav-item" data-tip="App preferences and privileged mode" data-tip-pos="below">Settings</div>
       </nav>
       <div class="case-switcher">
         <h4>Open cases</h4>
         <div class="case-actions">
-          <button type="button" class="btn primary" id="createCaseBtn">Create</button>
-          <button type="button" class="btn ghost" id="closeCaseBtn">Close</button>
+          <button type="button" class="btn primary" id="createCaseBtn" data-tip="Create a new diagnostic case" data-tip-pos="below">Create</button>
+          <button type="button" class="btn ghost" id="closeCaseBtn" data-tip="Close the active case" data-tip-pos="below">Close</button>
         </div>
         <div id="caseSwitcherList"></div>
       </div>
       <div class="sidebar-footer">
-        <span id="appVersion">Clear Crystal · v1.2.1</span>
-        <div><span class="kbd">N</span> next · <span class="kbd">E</span> evidence · <span class="kbd">⌘K</span> search</div>
-        <div class="toggle-row"><span>Solid surfaces</span><div class="toggle" id="solidToggle"></div></div>
+        <span id="appVersion" data-tip="Clear Crystal Liquid Glass UI">Clear Crystal · v1.3.0</span>
+        <div data-tip="Keyboard shortcuts" data-tip-pos="below"><span class="kbd">N</span> next · <span class="kbd">E</span> evidence · <span class="kbd">⌘K</span> search</div>
+        <div class="toggle-row">
+          <span data-tip="Reduce transparency for accessibility">Solid surfaces</span>
+          <div class="toggle" id="solidToggle" data-tip="Toggle solid surfaces (less blur)" role="switch" aria-label="Solid surfaces"></div>
+        </div>
       </div>
     </aside>
 
     <main class="workspace glass">
       <div class="topbar">
         <div>
-          <div class="topbar-title"><h2>Case Workspace</h2></div>
+          <div class="topbar-title"><h2 data-tip="Structured field diagnostic workspace">Case Workspace</h2></div>
           <div class="status-row">
-            <span class="badge accent" id="statusBadge">Diagnosing</span>
-            <span class="badge" id="deviceBadge">MacBook Pro</span>
-            <span class="badge" id="confBadge">Confidence —</span>
-            <span class="badge" id="caseBadge">Case #—</span>
-            <span class="badge" id="engineBadge">Engine</span>
+            <span class="badge accent" id="statusBadge" data-tip="Current case status">Diagnosing</span>
+            <span class="badge" id="deviceBadge" data-tip="Device under diagnosis">MacBook Pro</span>
+            <span class="badge" id="confBadge" data-tip="Top hypothesis confidence score">Confidence —</span>
+            <span class="badge" id="caseBadge" data-tip="Active case ID">Case #—</span>
+            <span class="badge" id="engineBadge" data-tip="Diagnostic engine and storage backend">Engine</span>
           </div>
         </div>
         <div class="search-wrap">
-          <input class="search" id="search" placeholder="Search cases, commands…" />
+          <input class="search" id="search" placeholder="Search cases, commands…" data-tip="Search open cases (⌘K)" title="Search open cases" />
         </div>
       </div>
 
       <section class="case-hero">
         <div>
-          <p class="symptom" id="symptom">—</p>
+          <p class="symptom" id="symptom" data-tip="Primary symptom for this case">—</p>
           <p class="meta" id="meta">—</p>
           <div class="hero-actions">
-            <button class="primary-action" id="nextTest" type="button">Next test <code id="nextCmd">—</code></button>
+            <button class="primary-action" id="nextTest" type="button" data-tip="Copy the recommended next diagnostic command (N)">Next test <code id="nextCmd">—</code></button>
             <div class="menu-btn" id="moreMenu">
-              <button type="button" class="btn" id="moreMenuBtn">More</button>
+              <button type="button" class="btn" id="moreMenuBtn" data-tip="Export, import, or close this case">More</button>
               <div class="menu-panel" role="menu">
-                <button type="button" class="menu-item" id="menuExport">Export CaseArtifact JSON</button>
-                <button type="button" class="menu-item" id="menuImport">Import CaseArtifact JSON</button>
-                <button type="button" class="menu-item" id="menuCopyAll">Copy all evidence</button>
-                <button type="button" class="menu-item" id="closeCaseBtnMenu">Close case</button>
+                <button type="button" class="menu-item" id="menuExport" data-tip="Download CaseArtifact JSON">Export CaseArtifact JSON</button>
+                <button type="button" class="menu-item" id="menuImport" data-tip="Import a CaseArtifact JSON file">Import CaseArtifact JSON</button>
+                <button type="button" class="menu-item" id="menuCopyAll" data-tip="Copy all evidence text to clipboard">Copy all evidence</button>
+                <button type="button" class="menu-item" id="closeCaseBtnMenu" data-tip="Close the active case">Close case</button>
               </div>
             </div>
           </div>
           <div class="pill-row" id="pillRow"></div>
           <div class="step-strip" id="stepStrip">
-            <div class="step done" data-step="0">Evidence</div>
-            <div class="step done" data-step="1">Hypotheses</div>
-            <div class="step active" data-step="2" id="stepTest">Test</div>
-            <div class="step" data-step="3" id="stepRepair">Verified</div>
+            <div class="step done" data-step="0" data-tip="Evidence gathered for this case">Evidence</div>
+            <div class="step done" data-step="1" data-tip="Hypotheses ranked by confidence">Hypotheses</div>
+            <div class="step active" data-step="2" id="stepTest" data-tip="Run the next recommended test">Test</div>
+            <div class="step" data-step="3" id="stepRepair" data-tip="Confirm the repair worked">Verified</div>
           </div>
         </div>
-        <div class="progress-ring-wrap">
+        <div class="progress-ring-wrap" data-tip="Verification progress through the case workflow">
           <div class="progress-ring">
             <svg width="88" height="88" viewBox="0 0 88 88">
               <circle class="bg" cx="44" cy="44" r="36" fill="none" stroke-width="7"/>
@@ -384,15 +478,15 @@
         <div class="timeline" id="timeline">
           <div class="timeline-item">
             <div class="tl-icon"></div>
-            <div class="timeline-body"><strong>Evidence collected</strong><span>Gather symptoms and command output.</span></div>
+            <div class="timeline-body" data-tip="Add notes and command output as evidence"><strong>Evidence collected</strong><span>Gather symptoms and command output.</span></div>
           </div>
           <div class="timeline-item">
             <div class="tl-icon"></div>
-            <div class="timeline-body"><strong>Hypotheses ranked</strong><span id="timelineHyp">—</span></div>
+            <div class="timeline-body" data-tip="Engine ranks likely causes from evidence"><strong>Hypotheses ranked</strong><span id="timelineHyp">—</span></div>
           </div>
           <div class="timeline-item">
             <div class="tl-icon muted"></div>
-            <div class="timeline-body"><strong>Verification</strong><span>Run next test and confirm repair.</span></div>
+            <div class="timeline-body" data-tip="Confirm fix with a verification test"><strong>Verification</strong><span>Run next test and confirm repair.</span></div>
           </div>
         </div>
       </div>
@@ -400,30 +494,30 @@
 
     <aside class="stack glass">
       <div class="panel" id="evidencePanel">
-        <div class="panel-head"><h3>Evidence</h3><span class="count" id="evidenceCount">0</span></div>
+        <div class="panel-head"><h3 data-tip="Notes, scans, and remediation output">Evidence</h3><span class="count" id="evidenceCount" data-tip="Number of evidence items">0</span></div>
         <div id="evidenceList"></div>
         <div class="add-evidence">
-          <input id="evidenceInput" type="text" placeholder="Add evidence note…" />
-          <button type="button" id="addEvidenceBtn">Add</button>
+          <input id="evidenceInput" type="text" placeholder="Add evidence note…" data-tip="Type a note and press Enter (E focuses here)" title="Add evidence note" />
+          <button type="button" id="addEvidenceBtn" data-tip="Save this note to the case">Add</button>
         </div>
       </div>
-      <div class="panel"><div class="panel-head"><h3>Hypotheses</h3></div><div id="hypList"></div></div>
+      <div class="panel"><div class="panel-head"><h3 data-tip="Ranked causes from the diagnostic engine">Hypotheses</h3></div><div id="hypList"></div></div>
       <div class="panel">
-        <div class="panel-head"><h3>Commands</h3></div>
+        <div class="panel-head"><h3 data-tip="Quick-copy common diagnostic commands">Commands</h3></div>
         <div id="cmdList">
-          <div class="cmd-item"><code>ping 8.8.8.8</code><button class="copy-btn" type="button" data-cmd="ping 8.8.8.8">Copy</button></div>
-          <div class="cmd-item"><code>route -n get default</code><button class="copy-btn" type="button" data-cmd="route -n get default">Copy</button></div>
-          <div class="cmd-item"><code>ipconfig getifaddr en0</code><button class="copy-btn" type="button" data-cmd="ipconfig getifaddr en0">Copy</button></div>
-          <div class="cmd-item"><code>networksetup -getinfo Wi-Fi</code><button class="copy-btn" type="button" data-cmd="networksetup -getinfo Wi-Fi">Copy</button></div>
-          <div class="cmd-item"><code>arp -a</code><button class="copy-btn" type="button" data-cmd="arp -a">Copy</button></div>
+          <div class="cmd-item"><code>ping 8.8.8.8</code><button class="copy-btn" type="button" data-cmd="ping 8.8.8.8" data-tip="Copy to clipboard">Copy</button></div>
+          <div class="cmd-item"><code>route -n get default</code><button class="copy-btn" type="button" data-cmd="route -n get default" data-tip="Copy to clipboard">Copy</button></div>
+          <div class="cmd-item"><code>ipconfig getifaddr en0</code><button class="copy-btn" type="button" data-cmd="ipconfig getifaddr en0" data-tip="Copy to clipboard">Copy</button></div>
+          <div class="cmd-item"><code>networksetup -getinfo Wi-Fi</code><button class="copy-btn" type="button" data-cmd="networksetup -getinfo Wi-Fi" data-tip="Copy to clipboard">Copy</button></div>
+          <div class="cmd-item"><code>arp -a</code><button class="copy-btn" type="button" data-cmd="arp -a" data-tip="Copy to clipboard">Copy</button></div>
         </div>
       </div>
       <div class="panel">
-        <div class="panel-head"><h3>Verification</h3></div>
-        <div class="check-item"><div class="check done"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span>Evidence recorded</span></div>
-        <div class="check-item"><div class="check done"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span>Hypotheses scored</span></div>
-        <div class="check-item"><div class="check" id="checkTest"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span>Next test executed</span></div>
-        <div class="check-item"><div class="check" id="checkRepair"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span>Repair verified</span></div>
+        <div class="panel-head"><h3 data-tip="Track verification checklist progress">Verification</h3></div>
+        <div class="check-item" data-tip="At least one evidence item recorded"><div class="check done"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span>Evidence recorded</span></div>
+        <div class="check-item" data-tip="Hypotheses scored from current evidence"><div class="check done"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span>Hypotheses scored</span></div>
+        <div class="check-item" data-tip="Copy or run the next test command"><div class="check" id="checkTest"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span>Next test executed</span></div>
+        <div class="check-item" data-tip="Confirm the issue is resolved"><div class="check" id="checkRepair"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div><span>Repair verified</span></div>
       </div>
     </aside>
   </div>
