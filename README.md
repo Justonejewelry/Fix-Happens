@@ -6,15 +6,15 @@ Cross-platform field diagnostic system for macOS and Android.
 
 Turns symptoms into structured troubleshooting cases. Tracks evidence, hypotheses, verification steps, commands, repair history, and knowledge packs.
 
-## Current status (v0.8 macOS shell)
+## Current status (v0.8.4)
 
 - Shared core architecture (diagnostic, plugin, knowledge, verification engines)
-- Liquid Glass design system (tokens + crystal UI + checklist)
-- macOS Electron shell with **Case Workspace** layout shipped
-- Android Flutter companion skeleton
-- SQLite schema for assets / cases / evidence / hypotheses / repairs
+- **Clear Crystal Liquid Glass** design system (tokens, checklist, accessibility fallbacks)
+- macOS Electron **Case Workspace** — 3-column UI, live hypothesis scoring, copy commands, keyboard shortcuts, case switcher, solid-surface toggle
+- Android Flutter companion — Case Workspace skeleton + `pubspec.yaml`
+- Client-side persistence helper (`apps/macos/storage.js`) toward SQLite
 - Example networking knowledge pack + plugin
-- Open issues track the remaining 0.8–1.0 work
+- Issues #4 and #5 closed; #1–#3 remain open with progress comments
 
 ## Quick start (macOS)
 
@@ -23,40 +23,43 @@ npm install
 npm start
 ```
 
-This launches the Electron app with the clear-crystal Liquid Glass Case Workspace.
+Launches the Electron app with the Liquid Glass Case Workspace.
+
+## Android (Flutter)
+
+```bash
+cd apps/android
+flutter pub get
+flutter run
+```
+
+Requires a Flutter SDK. `lib/main.dart` is the Case Workspace field UI.
 
 ## Repository layout
 
 ```
 apps/
-  macos/          # Electron desktop app (main.js + index.html)
-  android/        # Flutter field companion (main.dart)
-core/             # Shared JS engines (diagnostic, plugins, knowledge, verification)
+  macos/          # Electron desktop (main.js, index.html, storage.js)
+  android/        # Flutter field companion (main.dart, pubspec.yaml)
+core/             # Shared JS engines
 database/         # SQLite schema
 design/           # Tokens, components, checklist, accessibility, fallbacks
 docs/             # Architecture, roadmap, workflow, UI guidelines
-knowledge/        # JSON knowledge packs (networking, …)
-plugins/          # Extensible diagnostic plugins
+knowledge/        # JSON knowledge packs
+plugins/          # Diagnostic plugins
 ```
-
-## Planned modules
-
-- macOS desktop app (case management, command library, SQLite)
-- Android companion (offline cases, photo/voice, knowledge browsing)
-- Shared workflow + evidence + hypothesis + verification engines
-- Knowledge packs: networking, HVAC, electrical, plumbing, general repair
 
 ## Design system
 
 **Clear Crystal Liquid Glass**
 - Translucent crystal surfaces + soft blur + depth
 - Pink accent only (`#FF5AA5`)
-- Shared radii / shadows / spacing tokens in `design/tokens.json`
-- Full checklist: [`design/LIQUID_GLASS_CHECKLIST.md`](design/LIQUID_GLASS_CHECKLIST.md)
+- Tokens: `design/tokens.json`
+- Checklist: [`design/LIQUID_GLASS_CHECKLIST.md`](design/LIQUID_GLASS_CHECKLIST.md)
 
 ## Case workflow
 
 1. Create Case → 2. Gather Evidence → 3. Generate Hypotheses → 4. Rank by confidence  
 5. Recommend tests → 6. Execute → 7. Verify → 8. Close → 9. Archive knowledge
 
-See `docs/` for full architecture, plugin model, and roadmap.
+See `docs/` for architecture, plugin model, and roadmap.
