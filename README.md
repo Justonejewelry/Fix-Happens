@@ -6,11 +6,11 @@ Cross-platform field diagnostic system for macOS and Android.
 
 Turns symptoms into structured troubleshooting cases. Tracks evidence, hypotheses, verification steps, commands, repair history, and knowledge packs.
 
-## Current status (v0.8 foundation → macOS shell)
+## Current status (v0.8 macOS shell)
 
 - Shared core architecture (diagnostic, plugin, knowledge, verification engines)
-- Liquid Glass design system (tokens + crystal UI)
-- macOS Electron shell with Case Workspace layout in progress
+- Liquid Glass design system (tokens + crystal UI + checklist)
+- macOS Electron shell with **Case Workspace** layout shipped
 - Android Flutter companion skeleton
 - SQLite schema for assets / cases / evidence / hypotheses / repairs
 - Example networking knowledge pack + plugin
@@ -23,7 +23,7 @@ npm install
 npm start
 ```
 
-This launches the Electron app with the clear-crystal Liquid Glass UI.
+This launches the Electron app with the clear-crystal Liquid Glass Case Workspace.
 
 ## Repository layout
 
@@ -33,7 +33,7 @@ apps/
   android/        # Flutter field companion (main.dart)
 core/             # Shared JS engines (diagnostic, plugins, knowledge, verification)
 database/         # SQLite schema
-design/           # Tokens, components, accessibility notes
+design/           # Tokens, components, checklist, accessibility, fallbacks
 docs/             # Architecture, roadmap, workflow, UI guidelines
 knowledge/        # JSON knowledge packs (networking, …)
 plugins/          # Extensible diagnostic plugins
@@ -52,6 +52,7 @@ plugins/          # Extensible diagnostic plugins
 - Translucent crystal surfaces + soft blur + depth
 - Pink accent only (`#FF5AA5`)
 - Shared radii / shadows / spacing tokens in `design/tokens.json`
+- Full checklist: [`design/LIQUID_GLASS_CHECKLIST.md`](design/LIQUID_GLASS_CHECKLIST.md)
 
 ## Case workflow
 
