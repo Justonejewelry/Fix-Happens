@@ -1,0 +1,28 @@
+{
+  "name": "fix-happens",
+  "version": "0.8.0",
+  "description": "Cross-platform field diagnostic system. Shit breaks. Fix Happens.",
+  "main": "apps/macos/main.js",
+  "scripts": {
+    "start": "electron .",
+    "macos": "electron .",
+    "dev": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^33.2.0"
+  },
+  "keywords": [
+    "diagnostics",
+    "troubleshooting",
+    "macos",
+    "android",
+    "field-service",
+    "liquid-glass"
+  ],
+  "author": "Justonejewelry",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Justonejewelry/Fix-Happens.git"
+  }
+}
