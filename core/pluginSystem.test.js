@@ -110,6 +110,29 @@ test('network-scan-map responds to ARP / topology evidence', () => {
   );
 });
 
+test('network-scan-map recommends allowlisted scan plans', () => {
+  registry.clear();
+  loadPlugins(path.join(__dirname, '..', 'plugins'), { platform: 'darwin' });
+  const results = runAll({
+    symptom: 'Need network map of office LAN',
+    evidence: ['arp table almost empty', 'unknown subnet'],
+    platform: 'macos'
+  });
+  const scan = results.find((r) => r.pluginId === 'network-scan-map');
+  assert.ok(scan);
+  assert.ok(Array.isArray(scan.recommendedScans));
+  assert.ok(scan.recommendedScans.length >= 1, 'expected recommendedScans');
+  assert.ok(
+    scan.recommendedScans.every((s) => typeof s.planId === 'string'),
+    'each recommended scan needs planId'
+  );
+  const ids = scan.recommendedScans.map((s) => s.planId);
+  assert.ok(
+    ids.includes('arp-table') || ids.includes('local-interfaces'),
+    'expected arp-table or local-interfaces plan'
+  );
+});
+
 test('network-scan-map responds to port / mDNS evidence', () => {
   registry.clear();
   loadPlugins(path.join(__dirname, '..', 'plugins'), { platform: 'darwin' });
