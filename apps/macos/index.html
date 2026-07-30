@@ -55,9 +55,7 @@
     .nav-item {
       padding: 12px 14px; border-radius: 16px; border: 1px solid var(--line);
       background: var(--surface); color: var(--text); font-size: 14px; cursor: pointer;
-      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    .nav-item:hover { background: rgba(255, 255, 255, 0.11); }
     .nav-item.active {
       background: linear-gradient(135deg, rgba(255, 90, 165, 0.38), rgba(255, 255, 255, 0.10));
       border-color: rgba(255, 90, 165, 0.65);
@@ -67,11 +65,18 @@
     .case-switcher h4 {
       margin: 0 0 8px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted);
     }
+    .case-actions { display: flex; gap: 8px; margin-bottom: 10px; }
+    .case-actions button {
+      flex: 1; padding: 8px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+      border: 1px solid var(--line); background: var(--surface); color: var(--text);
+    }
+    .case-actions button.primary {
+      border-color: rgba(255, 90, 165, 0.5); background: rgba(255, 90, 165, 0.22);
+    }
     .case-chip {
       padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line);
       background: rgba(255,255,255,0.05); margin-bottom: 6px; font-size: 12px; cursor: pointer;
     }
-    .case-chip:hover { background: rgba(255,255,255,0.09); }
     .case-chip.active {
       border-color: rgba(255, 90, 165, 0.5); background: rgba(255, 90, 165, 0.12);
     }
@@ -111,11 +116,8 @@
       background: rgba(255, 90, 165, 0.15); font-weight: 600;
     }
     .search {
-      min-width: 220px; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--line);
+      min-width: 200px; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--line);
       background: var(--surface); color: var(--text); outline: none; font-size: 14px;
-    }
-    .search:focus {
-      border-color: rgba(255, 90, 165, 0.5); box-shadow: 0 0 0 3px rgba(255, 90, 165, 0.15);
     }
     .case-hero {
       padding: 20px; border-radius: 24px; border: 1px solid var(--line); background: var(--surface-strong);
@@ -139,9 +141,6 @@
       border: 1px solid rgba(255, 90, 165, 0.55);
       background: linear-gradient(135deg, rgba(255, 90, 165, 0.4), rgba(255, 90, 165, 0.18));
       color: var(--text); font-weight: 600; font-size: 14px; cursor: pointer;
-    }
-    .primary-action:hover {
-      box-shadow: 0 0 0 1px rgba(255, 90, 165, 0.35), 0 10px 28px rgba(255, 90, 165, 0.18);
     }
     .primary-action code {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
@@ -188,7 +187,6 @@
       padding: 10px 12px; border-radius: 14px; border: 1px solid var(--line);
       background: rgba(255, 255, 255, 0.05); margin-bottom: 8px; font-size: 13px;
     }
-    .evidence-item:last-child, .hyp-item:last-child, .cmd-item:last-child, .check-item:last-child { margin-bottom: 0; }
     .empty-state { color: var(--muted); text-align: center; border-style: dashed; margin-bottom: 0; }
     .evidence-item .type {
       font-size: 11px; color: var(--accent); font-weight: 600; text-transform: uppercase;
@@ -199,7 +197,6 @@
       flex: 1; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line);
       background: rgba(255, 255, 255, 0.06); color: var(--text); outline: none; font-size: 13px;
     }
-    .add-evidence input:focus { border-color: rgba(255, 90, 165, 0.45); }
     .add-evidence button {
       padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255, 90, 165, 0.45);
       background: rgba(255, 90, 165, 0.2); color: var(--text); font-size: 13px; font-weight: 600; cursor: pointer;
@@ -211,12 +208,10 @@
     .meter > span {
       display: block; height: 100%; border-radius: 999px;
       background: linear-gradient(90deg, rgba(255, 90, 165, 0.55), var(--accent));
-      transition: width 0.3s ease;
     }
     .cmd-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .cmd-item code {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px;
-      overflow: hidden; text-overflow: ellipsis;
     }
     .copy-btn {
       flex-shrink: 0; padding: 5px 10px; border-radius: 10px; border: 1px solid var(--line);
@@ -235,7 +230,6 @@
     }
     @media (max-width: 1100px) {
       .shell { grid-template-columns: 1fr; }
-      .sidebar, .stack { min-height: auto; }
     }
   </style>
 </head>
@@ -256,22 +250,15 @@
       </div>
       <div class="case-switcher">
         <h4>Open cases</h4>
-        <div class="case-chip active" data-case="1042">
-          <span class="id">#1042</span>
-          <span class="sym">Wi-Fi connected but no internet</span>
+        <div class="case-actions">
+          <button type="button" class="primary" id="createCaseBtn">+ Create</button>
+          <button type="button" id="closeCaseBtn">Close</button>
         </div>
-        <div class="case-chip" data-case="1038">
-          <span class="id">#1038</span>
-          <span class="sym">Printer offline after sleep</span>
-        </div>
-        <div class="case-chip" data-case="1031">
-          <span class="id">#1031</span>
-          <span class="sym">VPN drops every 10 min</span>
-        </div>
+        <div id="caseSwitcherList"></div>
       </div>
       <div class="sidebar-footer">
         Clear Crystal · Liquid Glass<br />
-        v0.8.4 · macOS shell
+        v0.8.5 · macOS shell
         <div class="shortcuts">N next · E evidence · ⌘K search</div>
         <div class="toggle-row">
           <span>Solid surfaces</span>
@@ -289,6 +276,7 @@
             <span class="badge" id="deviceBadge">MacBook Pro</span>
             <span class="badge" id="confBadge">Confidence 94%</span>
             <span class="badge" id="caseBadge">Case #1042</span>
+            <span class="badge" id="engineBadge">Engine</span>
           </div>
         </div>
         <input class="search" id="search" placeholder="Search cases, commands, symptoms… (⌘K)" />
@@ -309,11 +297,7 @@
         <button class="primary-action" id="nextTest" type="button" title="Copy next test (N)">
           Next test → <code id="nextCmd">ipconfig getifaddr en0</code>
         </button>
-        <div class="pill-row" id="pillRow">
-          <div class="pill">No route to host</div>
-          <div class="pill">No IP assigned</div>
-          <div class="pill">VPN inactive</div>
-        </div>
+        <div class="pill-row" id="pillRow"></div>
       </section>
 
       <div>
@@ -323,21 +307,21 @@
             <div class="dot"></div>
             <div class="timeline-body">
               <strong>Evidence collected</strong>
-              <span>User reported “connected but no internet”. Command output: no route to host.</span>
+              <span>Gather symptoms and command output.</span>
             </div>
           </div>
           <div class="timeline-item">
             <div class="dot"></div>
             <div class="timeline-body">
               <strong>Hypotheses ranked</strong>
-              <span id="timelineHyp">DHCP Failure (92%) · Network Preference Corruption (78%) · VPN Route Corruption (55%)</span>
+              <span id="timelineHyp">—</span>
             </div>
           </div>
           <div class="timeline-item">
             <div class="dot muted"></div>
             <div class="timeline-body">
-              <strong>Verification pending</strong>
-              <span>Awaiting results of recommended network tests.</span>
+              <strong>Verification</strong>
+              <span>Run next test and confirm repair.</span>
             </div>
           </div>
         </div>
