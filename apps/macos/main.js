@@ -6,6 +6,7 @@ let knowledge = null;
 let caseContract = null;
 let pluginExecutor = null;
 let pluginRegistry = null;
+let scanRunner = null;
 
 try {
   db = require('./db');
@@ -23,6 +24,12 @@ try {
   caseContract = require(path.join(__dirname, '..', '..', 'core', 'caseContract.js'));
 } catch (e) {
   console.error('caseContract failed', e);
+}
+
+try {
+  scanRunner = require(path.join(__dirname, '..', '..', 'core', 'scanRunner.js'));
+} catch (e) {
+  console.error('scanRunner failed', e);
 }
 
 try {
@@ -55,6 +62,16 @@ function createWindow() {
   });
 
   win.loadFile(path.join(__dirname, 'index.html'));
+}
+
+function isPrivilegedEnabled() {
+  if (!db) return false;
+  try {
+    const meta = db.getMeta() || {};
+    return !!meta.privilegedScans;
+  } catch (_) {
+    return false;
+  }
 }
 
 function wireIpc() {
@@ -107,8 +124,71 @@ function wireIpc() {
     try {
       return pluginExecutor.runAll(context || {});
     } catch (e) {
-      return [{ pluginId: '*', error: e.message, hypotheses: [], tips: [], nextTests: [] }];
+      return [
+        {
+          pluginId: '*',
+          error: e.message,
+          hypotheses: [],
+          tips: [],
+          nextTests: [],
+          recommendedScans: []
+        }
+      ];
     }
+  });
+
+  // --- Privileged scan runner ---
+  ipcMain.handle('scan:listPlans', () => {
+    if (!scanRunner) return [];
+    return scanRunner.listPlans();
+  });
+
+  ipcMain.handle('scan:status', () => {
+    return {
+      available: !!scanRunner,
+      enabled: isPrivilegedEnabled(),
+      platform: process.platform
+    };
+  });
+
+  ipcMain.handle('scan:setEnabled', (_e, enabled) => {
+    if (!db) throw new Error('DB unavailable');
+    const meta = db.updateMeta({ privilegedScans: !!enabled });
+    return { enabled: !!meta.privilegedScans };
+  });
+
+  ipcMain.handle('scan:run', async (_e, payload) => {
+    if (!scanRunner) {
+      return { ok: false, error: 'scanRunner unavailable' };
+    }
+    const planId = payload && payload.planId;
+    const params = (payload && payload.params) || {};
+    const caseId = payload && payload.caseId;
+    const enabled = isPrivilegedEnabled();
+
+    const result = await scanRunner.runPlan(planId, params, { enabled });
+
+    // Optionally attach command output as case evidence
+    if (result && caseId && db && (result.stdout || result.stderr || result.error)) {
+      try {
+        const body = [
+          `$ ${result.command || planId}`,
+          result.stdout || '',
+          result.stderr ? '[stderr]\n' + result.stderr : '',
+          result.error ? '[error] ' + result.error : '',
+          result.durationMs != null ? `(${result.durationMs}ms)` : ''
+        ]
+          .filter(Boolean)
+          .join('\n')
+          .trim();
+        db.addEvidence(caseId, 'Command Output', body.slice(0, 12000));
+        result.attachedEvidence = true;
+      } catch (e) {
+        result.attachError = e.message;
+      }
+    }
+
+    return result;
   });
 
   ipcMain.handle('case:export', (_e, caseId) => {

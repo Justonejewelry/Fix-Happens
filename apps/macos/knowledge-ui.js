@@ -1,11 +1,27 @@
-/* Knowledge drawer + contextual field tips (knowledge + plugins) + CaseArtifact export */
+/* Knowledge drawer + field tips + privileged scan runner UI + CaseArtifact export */
 (function () {
   const K = window.FixHappensKnowledge;
   const P = window.FixHappensPlugins;
   const X = window.FixHappensExport;
+  const S = window.FixHappensScan;
+  const DB = window.FixHappensDB;
 
   function el(id) {
     return document.getElementById(id);
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function activeCaseId() {
+    const badge = el('caseBadge');
+    const idMatch = badge && badge.textContent.match(/#(\S+)/);
+    return idMatch ? idMatch[1] : null;
   }
 
   function ensureDrawer() {
@@ -42,7 +58,20 @@
       'background:rgba(255,90,165,.08);font-size:12.5px;margin-bottom:6px;color:var(--muted);}' +
       '.field-tip strong{color:#ffc2dc;font-size:11px;display:block;margin-bottom:2px;}' +
       '.field-tip.knowledge{border-color:rgba(120,180,255,.3);background:rgba(80,140,255,.08);}' +
-      '.field-tip.knowledge strong{color:#a8c8ff;}';
+      '.field-tip.knowledge strong{color:#a8c8ff;}' +
+      '#scanPanel{margin-top:10px;padding:12px;border-radius:16px;border:1px solid rgba(120,200,160,.25);' +
+      'background:rgba(60,140,100,.08);}' +
+      '#scanPanel .scan-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}' +
+      '#scanPanel .scan-title{font-weight:700;font-size:13px;color:#b8f0d0;}' +
+      '#scanPanel .scan-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}' +
+      '#scanPanel button.scan-btn{font-size:11.5px;padding:6px 10px;border-radius:10px;' +
+      'border:1px solid rgba(120,200,160,.35);background:rgba(80,160,120,.2);color:#d8ffe8;cursor:pointer;}' +
+      '#scanPanel button.scan-btn:disabled{opacity:.45;cursor:not-allowed;}' +
+      '#scanPanel button.scan-btn:hover:not(:disabled){background:rgba(80,160,120,.35);}' +
+      '#scanOutput{margin-top:8px;max-height:180px;overflow:auto;font-family:ui-monospace,monospace;' +
+      'font-size:11px;white-space:pre-wrap;color:var(--muted);padding:8px;border-radius:10px;' +
+      'background:rgba(0,0,0,.25);border:1px solid var(--line);display:none;}' +
+      '.priv-toggle{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);}';
     document.head.appendChild(style);
 
     el('kdClose').onclick = closeDrawer;
@@ -64,7 +93,8 @@
     const body = el('kdBody');
     if (!body) return;
     if (!K || !K.available) {
-      body.innerHTML = '<div class="empty-state">Knowledge API unavailable (open in Electron)</div>';
+      body.innerHTML =
+        '<div class="empty-state">Knowledge API unavailable (open in Electron)</div>';
       return;
     }
     try {
@@ -98,21 +128,11 @@
         })
         .join('');
     } catch (e) {
-      body.innerHTML = '<div class="empty-state">Failed: ' + escapeHtml(e.message || e) + '</div>';
+      body.innerHTML =
+        '<div class="empty-state">Failed: ' + escapeHtml(e.message || e) + '</div>';
     }
   }
 
-  function escapeHtml(s) {
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  /**
-   * Combine plugin tips + contextual knowledge tips under the case hero.
-   */
   async function refreshFieldTips() {
     let host = el('fieldTips');
     if (!host) {
@@ -138,8 +158,8 @@
     };
 
     const items = [];
+    const recommended = [];
 
-    // Plugin tips
     if (P && P.available) {
       try {
         const results = await P.run(context);
@@ -148,17 +168,16 @@
           for (const t of r.tips || []) {
             items.push({ source: 'plugin', label: r.pluginId, text: t });
           }
+          for (const s of r.recommendedScans || []) {
+            recommended.push(s);
+          }
         }
       } catch (_) {}
     }
 
-    // Knowledge pack tips (contextual)
     if (K && K.available && typeof K.relevant === 'function') {
       try {
-        const relevant = await K.relevant({
-          symptom,
-          evidence
-        });
+        const relevant = await K.relevant({ symptom, evidence });
         for (const r of relevant || []) {
           items.push({
             source: 'knowledge',
@@ -169,29 +188,164 @@
       } catch (_) {}
     }
 
-    if (!items.length) {
-      host.innerHTML = '';
-      return;
+    let html = '';
+    if (items.length) {
+      const shown = items.slice(0, 6);
+      html +=
+        '<div class="section-head" style="margin-top:8px">Field tips</div>' +
+        shown
+          .map((t) => {
+            const cls = t.source === 'knowledge' ? 'field-tip knowledge' : 'field-tip';
+            return (
+              '<div class="' +
+              cls +
+              '"><strong>' +
+              escapeHtml(t.label) +
+              '</strong>' +
+              escapeHtml(t.text) +
+              '</div>'
+            );
+          })
+          .join('');
     }
 
-    // Prefer a mix; cap at 6
-    const shown = items.slice(0, 6);
-    host.innerHTML =
-      '<div class="section-head" style="margin-top:8px">Field tips</div>' +
-      shown
-        .map((t) => {
-          const cls = t.source === 'knowledge' ? 'field-tip knowledge' : 'field-tip';
-          return (
-            '<div class="' +
-            cls +
-            '"><strong>' +
-            escapeHtml(t.label) +
-            '</strong>' +
-            escapeHtml(t.text) +
-            '</div>'
-          );
-        })
-        .join('');
+    html += await renderScanPanel(recommended);
+    host.innerHTML = html;
+    wireScanButtons();
+  }
+
+  async function renderScanPanel(recommended) {
+    if (!S || !S.available) return '';
+
+    let status = { enabled: false, available: true };
+    try {
+      status = await S.status();
+    } catch (_) {}
+
+    const scans = [];
+    const seen = new Set();
+    for (const s of recommended || []) {
+      const key = s.planId + JSON.stringify(s.params || {});
+      if (seen.has(key)) continue;
+      seen.add(key);
+      scans.push(s);
+    }
+
+    // Always offer baseline plans when panel is shown with scan context
+    if (!scans.length) {
+      // still show toggle + note when no recommendations
+      return (
+        '<div id="scanPanel">' +
+        '<div class="scan-head">' +
+        '<div class="scan-title">Privileged scans</div>' +
+        privToggleHtml(status.enabled) +
+        '</div>' +
+        '<div style="font-size:11.5px;color:var(--muted)">' +
+        (status.enabled
+          ? 'No recommended scans for current evidence. Add scan/map keywords or pick a plan from the catalog later.'
+          : 'Enable to run allowlisted read-only network diagnostics (ARP, ifconfig, ping, …). Off by default.') +
+        '</div></div>'
+      );
+    }
+
+    const buttons = scans
+      .slice(0, 8)
+      .map((s, i) => {
+        const label = s.label || s.planId;
+        return (
+          '<button type="button" class="scan-btn" data-scan-idx="' +
+          i +
+          '" ' +
+          (status.enabled ? '' : 'disabled title="Enable privileged scans first"') +
+          '>' +
+          escapeHtml(label) +
+          '</button>'
+        );
+      })
+      .join('');
+
+    // stash for click handlers
+    window.__fhScanRecs = scans.slice(0, 8);
+
+    return (
+      '<div id="scanPanel">' +
+      '<div class="scan-head">' +
+      '<div class="scan-title">Privileged scans</div>' +
+      privToggleHtml(status.enabled) +
+      '</div>' +
+      '<div class="scan-actions">' +
+      buttons +
+      '</div>' +
+      '<div id="scanOutput"></div>' +
+      '</div>'
+    );
+  }
+
+  function privToggleHtml(enabled) {
+    return (
+      '<label class="priv-toggle">' +
+      '<input type="checkbox" id="privScanToggle" ' +
+      (enabled ? 'checked' : '') +
+      '/>' +
+      ' Enable' +
+      '</label>'
+    );
+  }
+
+  function wireScanButtons() {
+    const toggle = el('privScanToggle');
+    if (toggle) {
+      toggle.onchange = async () => {
+        if (!S) return;
+        try {
+          await S.setEnabled(!!toggle.checked);
+          await refreshFieldTips();
+        } catch (e) {
+          window.alert('Could not update scan preference: ' + (e.message || e));
+        }
+      };
+    }
+
+    document.querySelectorAll('#scanPanel .scan-btn').forEach((btn) => {
+      btn.onclick = async () => {
+        const idx = Number(btn.getAttribute('data-scan-idx'));
+        const rec = (window.__fhScanRecs || [])[idx];
+        if (!rec || !S) return;
+        btn.disabled = true;
+        const out = el('scanOutput');
+        if (out) {
+          out.style.display = 'block';
+          out.textContent = 'Running ' + rec.planId + '…';
+        }
+        try {
+          const result = await S.run({
+            planId: rec.planId,
+            params: rec.params || {},
+            caseId: activeCaseId()
+          });
+          if (out) {
+            out.textContent = [
+              result.command ? '$ ' + result.command : rec.planId,
+              result.stdout || '',
+              result.stderr || '',
+              result.error ? 'Error: ' + result.error : '',
+              result.attachedEvidence ? '(attached to case evidence)' : '',
+              result.durationMs != null ? result.durationMs + 'ms' : ''
+            ]
+              .filter(Boolean)
+              .join('\n');
+          }
+          // Refresh evidence list if app exposes a reload hook
+          if (result.attachedEvidence && typeof window.reloadActiveCase === 'function') {
+            window.reloadActiveCase();
+          }
+        } catch (e) {
+          if (out) out.textContent = 'Failed: ' + (e.message || e);
+        } finally {
+          btn.disabled = false;
+        }
+      };
+    });
   }
 
   async function exportActiveCase() {
@@ -199,9 +353,7 @@
       window.alert('Export requires Electron');
       return;
     }
-    const badge = el('caseBadge');
-    const idMatch = badge && badge.textContent.match(/#(\S+)/);
-    const caseId = idMatch ? idMatch[1] : null;
+    const caseId = activeCaseId();
     if (!caseId) {
       window.alert('No active case');
       return;

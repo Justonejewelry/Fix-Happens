@@ -1,5 +1,5 @@
 /**
- * Electron preload — engine, durable DB, knowledge, plugins, export.
+ * Electron preload — engine, durable DB, knowledge, plugins, scan, export.
  */
 const { contextBridge, ipcRenderer } = require('electron');
 const path = require('path');
@@ -50,6 +50,14 @@ contextBridge.exposeInMainWorld('FixHappensKnowledge', {
 contextBridge.exposeInMainWorld('FixHappensPlugins', {
   list: () => ipcRenderer.invoke('plugins:list'),
   run: (context) => ipcRenderer.invoke('plugins:run', context),
+  available: true
+});
+
+contextBridge.exposeInMainWorld('FixHappensScan', {
+  listPlans: () => ipcRenderer.invoke('scan:listPlans'),
+  status: () => ipcRenderer.invoke('scan:status'),
+  setEnabled: (enabled) => ipcRenderer.invoke('scan:setEnabled', enabled),
+  run: (payload) => ipcRenderer.invoke('scan:run', payload),
   available: true
 });
 

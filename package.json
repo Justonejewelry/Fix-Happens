@@ -1,15 +1,16 @@
 {
   "name": "fix-happens",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Shit breaks. Fix Happens. Cross-platform field diagnostic system for macOS (Electron) and Android (Flutter): structured cases, evidence, ranked hypotheses, verification checklists, offline-first field workflow, Clear Crystal Liquid Glass UI.",
   "main": "apps/macos/main.js",
   "scripts": {
     "start": "electron .",
     "macos": "electron .",
     "dev": "electron .",
-    "test": "node core/diagnosticEngine.test.js && node core/pluginSystem.test.js",
+    "test": "node core/diagnosticEngine.test.js && node core/pluginSystem.test.js && node core/scanRunner.test.js",
     "test:core": "node core/diagnosticEngine.test.js",
-    "test:plugins": "node core/pluginSystem.test.js"
+    "test:plugins": "node core/pluginSystem.test.js",
+    "test:scan": "node core/scanRunner.test.js"
   },
   "devDependencies": {
     "electron": "^33.2.0"
@@ -26,7 +27,8 @@
     "offline-first",
     "IT-support",
     "hypothesis-ranking",
-    "case-management"
+    "case-management",
+    "network-scan"
   ],
   "author": {
     "name": "Justonejewelry",
