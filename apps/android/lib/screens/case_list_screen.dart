@@ -5,8 +5,6 @@ import '../services/case_store.dart';
 import '../widgets/crystal_card.dart';
 import 'case_workspace_screen.dart';
 
-const Color kAccent = Color(0xFFFF5AA5);
-
 class CaseListScreen extends StatefulWidget {
   const CaseListScreen({super.key});
 
@@ -57,14 +55,24 @@ class _CaseListScreenState extends State<CaseListScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1C2033),
-        title: const Text('New case'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.add_circle_outline, color: kAccent, size: 22),
+            SizedBox(width: 8),
+            Text('New case'),
+          ],
+        ),
         content: TextField(
           controller: controller,
           autofocus: true,
           style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             hintText: 'Symptom / problem',
-            hintStyle: TextStyle(color: Colors.white54),
+            hintStyle: const TextStyle(color: Colors.white54),
+            filled: true,
+            fillColor: Colors.white.withOpacity(0.06),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
           ),
           onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
         ),
@@ -73,10 +81,16 @@ class _CaseListScreenState extends State<CaseListScreen> {
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancel'),
           ),
-          FilledButton(
+          FilledButton.icon(
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            style: FilledButton.styleFrom(backgroundColor: kAccent),
-            child: const Text('Create'),
+            style: FilledButton.styleFrom(
+              backgroundColor: kAccent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            icon: const Icon(Icons.check, size: 18),
+            label: const Text('Create'),
           ),
         ],
       ),
@@ -115,36 +129,82 @@ class _CaseListScreenState extends State<CaseListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF111427), Color(0xFF261233), Color(0xFF1B1A2E)],
-        ),
-      ),
+    return AppGradientBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          title: const Text('Fix Happens'),
+          title: const Row(
+            children: [
+              BrandMark(size: 32),
+              SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Fix Happens',
+                    style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                  ),
+                  Text(
+                    'Open cases',
+                    style: TextStyle(fontSize: 11, color: Colors.white54),
+                  ),
+                ],
+              ),
+            ],
+          ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.refresh),
+              tooltip: 'Refresh',
+              icon: const Icon(Icons.refresh_rounded),
               onPressed: _reload,
+            ),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert_rounded),
+              color: const Color(0xFF1C2033),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              onSelected: (v) {
+                if (v == 'new') _createCase();
+                if (v == 'refresh') _reload();
+              },
+              itemBuilder: (_) => [
+                const PopupMenuItem(
+                  value: 'new',
+                  child: ListTile(
+                    dense: true,
+                    leading: Icon(Icons.add, color: kAccent),
+                    title: Text('New case'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'refresh',
+                  child: ListTile(
+                    dense: true,
+                    leading: Icon(Icons.refresh, color: Colors.white70),
+                    title: Text('Refresh'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: _createCase,
-          backgroundColor: kAccent.withOpacity(0.9),
+          backgroundColor: kAccent.withOpacity(0.92),
           foregroundColor: Colors.white,
-          icon: const Icon(Icons.add),
+          elevation: 8,
+          icon: const Icon(Icons.add_rounded),
           label: const Text('New case'),
         ),
         body: _loading
-            ? const Center(child: CircularProgressIndicator(color: kAccent))
+            ? const Center(
+                child: CircularProgressIndicator(color: kAccent, strokeWidth: 3),
+              )
             : Column(
                 children: [
                   if (_error != null)
@@ -153,9 +213,9 @@ class _CaseListScreenState extends State<CaseListScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.warning_amber, color: Colors.white),
+                            const Icon(Icons.warning_amber_rounded,
+                                color: Colors.white),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -174,67 +234,143 @@ class _CaseListScreenState extends State<CaseListScreen> {
                         ),
                       ),
                     ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                    child: Row(
+                      children: [
+                        StatusPill(
+                          '${_open.length} open',
+                          accent: true,
+                          icon: Icons.folder_open_rounded,
+                        ),
+                        const SizedBox(width: 8),
+                        StatusPill(
+                          'Offline',
+                          icon: Icons.cloud_off_outlined,
+                        ),
+                      ],
+                    ),
+                  ),
                   Expanded(
                     child: _open.isEmpty
-                        ? const Center(
-                            child: Text(
-                              'No open cases\nTap New case to start',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white70),
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.inbox_outlined,
+                                    size: 48,
+                                    color: Colors.white.withOpacity(0.35)),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'No open cases',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.75),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Tap New case to start diagnosing',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.45),
+                                  ),
+                                ),
+                              ],
                             ),
                           )
                         : ListView.separated(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
+                            padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
                             itemCount: _open.length,
                             separatorBuilder: (_, __) =>
                                 const SizedBox(height: 12),
                             itemBuilder: (context, i) {
                               final c = _open[i];
-                              return GestureDetector(
+                              final done = c.verificationDone;
+                              return CrystalCard(
                                 onTap: () => _openCase(c),
-                                child: CrystalCard(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
+                                child: Row(
+                                  children: [
+                                    VerificationRing(
+                                      progress: c.verificationProgress,
+                                      label: '$done/4',
+                                      size: 56,
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
+                                          Row(
+                                            children: [
+                                              Text(
+                                                '#${c.id}',
+                                                style: const TextStyle(
+                                                  color: kAccent,
+                                                  fontWeight: FontWeight.w800,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              const Spacer(),
+                                              StatusPill(
+                                                c.status,
+                                                accent: true,
+                                                icon: Icons.timelapse_rounded,
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 6),
                                           Text(
-                                            '#${c.id}',
+                                            c.symptom,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
-                                              color: kAccent,
-                                              fontWeight: FontWeight.w700,
+                                              fontSize: 15.5,
+                                              fontWeight: FontWeight.w600,
+                                              height: 1.25,
                                             ),
                                           ),
-                                          const Spacer(),
-                                          Text(
-                                            c.status,
-                                            style: TextStyle(
-                                              color: Colors.white
-                                                  .withOpacity(0.65),
-                                              fontSize: 12,
-                                            ),
+                                          const SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              Icon(Icons.devices_rounded,
+                                                  size: 13,
+                                                  color: Colors.white
+                                                      .withOpacity(0.45)),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                c.device,
+                                                style: TextStyle(
+                                                  color: Colors.white
+                                                      .withOpacity(0.5),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Icon(Icons.notes_rounded,
+                                                  size: 13,
+                                                  color: Colors.white
+                                                      .withOpacity(0.45)),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                '${c.evidence.length}',
+                                                style: TextStyle(
+                                                  color: Colors.white
+                                                      .withOpacity(0.5),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        c.symptom,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        '${c.device} · ${c.evidence.length} evidence',
-                                        style: TextStyle(
-                                          color: Colors.white.withOpacity(0.55),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                    Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: Colors.white.withOpacity(0.35),
+                                    ),
+                                  ],
                                 ),
                               );
                             },
