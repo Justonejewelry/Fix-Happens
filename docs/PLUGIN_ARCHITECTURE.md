@@ -1,73 +1,97 @@
-# Plugin Architecture
+# Plugin & Knowledge Architecture
 
 ## Goals
 - Extend Fix Happens without modifying the core.
 - Support offline-first operation.
-- Allow community and vendor knowledge packs.
-- Keep plugins pure (suggestions only) so they stay safe on both macOS and Android.
+- Allow community and vendor knowledge packs + diagnostic plugins.
 
-## Plugin Types
-- Diagnostic providers (current focus)
-- Knowledge packs
-- Command libraries (future)
-- Verification modules (future)
-- Report exporters (future)
+## Plugin model
 
-## Plugin Manifest
-Required fields:
-- `id` — lowercase alphanumeric with `. _ -`
-- `name`
-- `version`
-- `entryPoint` (usually `index.js`)
+Plugins live under `plugins/<id>/` with:
 
-Optional:
-- `description`
-- `supportedPlatforms` — `macos`, `android`, `windows`, or `all`
-- `permissions` — reserved for future capability gating
-- `capabilities` — defaults to `["suggest"]`
+| File | Role |
+|------|------|
+| `manifest.json` | id, name, version, entryPoint, supportedPlatforms, permissions, capabilities |
+| `index.js` | exports `{ id, name, version, description, diagnose(context) }` |
 
-## Contract
-
-Every plugin must export a `diagnose(context)` function (either as the module itself or as `module.exports.diagnose`).
+### Diagnose contract
 
 ```js
-/**
- * @param {{ symptom: string, evidence: string[], platform?: string, device?: string }} context
- * @returns {{
- *   hypotheses?: Array<{ cause: string, confidenceBoost: number }>,
- *   tips?: string[],
- *   nextTests?: string[]
- * }}
- */
-function diagnose(context) { ... }
+diagnose({
+  symptom: string,
+  evidence: string[],
+  platform: string,   // 'macos' | 'android' | …
+  device: string
+}) → {
+  hypotheses: [{ cause: string, confidenceBoost: number }],
+  tips: string[],
+  nextTests: string[]
+}
 ```
 
-Plugins **must not** execute shell commands or mutate case data. They only return soft suggestions that the UI and core engine can surface.
+Plugins **must not** execute shell commands. They return soft suggestions only.
 
-## Lifecycle
-1. Discover (`plugins/*/manifest.json`)
-2. Validate (`pluginManifestValidator`)
-3. Load (`pluginLoader` → `require(entryPoint)`)
-4. Register (`pluginRegistry`)
-5. Execute (`pluginExecutor.runAll(context)`)
-6. Unload (registry clear on demand)
+### Lifecycle
+1. Discover (`plugins/*/`)
+2. Validate manifest
+3. Load entry module
+4. Register in `pluginRegistry`
+5. Execute via `pluginExecutor.runAll(context)`
 
-## Shipped High-Value Plugins (v1)
+### Shipped plugins (v1)
 
-| ID | Domain | Primary value |
-|----|--------|---------------|
-| `example-network` | Network | DHCP, DNS, VPN route corruption |
-| `printer-diagnostics` | Print | CUPS queues, offline state, drivers, USB/network printers |
-| `power-sleep` | Power | Sleep/wake, battery, clamshell, Power Nap, assertions |
-| `storage-disk` | Storage | Disk space, APFS snapshots, SMART, external volumes, I/O |
-| `display-graphics` | Display | External monitors, GPU hangs, resolution, brightness |
-| `usb-peripheral` | USB / HID | Hubs, keyboards/mice, enumeration, sleep disconnects |
+| ID | Domain |
+|----|--------|
+| `example-network` | Network (DHCP, DNS, VPN) |
+| `printer-diagnostics` | CUPS / queues / offline printers |
+| `power-sleep` | Sleep, wake, battery, clamshell |
+| `storage-disk` | Disk space, APFS, SMART, external volumes |
+| `display-graphics` | External display, GPU, resolution |
+| `usb-peripheral` | USB hubs, HID, Thunderbolt docks |
 
-All six load automatically on macOS Electron startup and are exercised by `npm run test:plugins`.
+---
 
-## Adding a new plugin
+## Knowledge packs
 
-1. Create `plugins/<id>/manifest.json` + `index.js`
-2. Implement pure `diagnose(context)`
-3. Run `npm run test:plugins`
-4. Commit — no core changes required
+JSON files under `knowledge/` (mirrored to `apps/android/assets/knowledge/`).
+
+### Pack shape
+
+```json
+{
+  "id": "network-basics",
+  "title": "Network diagnostics",
+  "version": 2,
+  "category": "network",
+  "tips": ["…"],
+  "relatedCauses": ["DHCP Failure", "…"],
+  "keywords": ["wifi", "dhcp", "…"],
+  "scenarios": [ /* optional richer playbooks */ ]
+}
+```
+
+### Loader API (`core/knowledgeLoader.js`)
+
+- `listPacks()` → pack name list
+- `loadKnowledgePack(name)` → normalized pack
+- `loadAll()` → `{ packs, errors }`
+- `getRelevantTips({ symptom, evidence, causes })` → ranked tips for the active case
+
+### Wiring
+
+| Surface | Behavior |
+|---------|----------|
+| macOS Knowledge drawer | Lists all packs via `knowledge:list` IPC |
+| macOS case workspace | **Field tips** = plugin tips + `getRelevantTips` (IPC `knowledge:relevant`) |
+| Android Knowledge tab | Loads all packs from `assets/knowledge/` |
+
+### Shipped packs
+
+| File | Domain |
+|------|--------|
+| `network.json` | Wi-Fi / DHCP / DNS / VPN |
+| `print.json` | Printers / CUPS |
+| `power.json` | Sleep / battery / clamshell |
+| `storage.json` | Disk space / APFS / SMART |
+| `display.json` | Monitors / GPU / scaling |
+| `usb.json` | USB / HID / docks |

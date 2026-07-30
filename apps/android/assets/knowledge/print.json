@@ -1,0 +1,23 @@
+{
+  "id": "print-basics",
+  "title": "Printer diagnostics",
+  "version": 2,
+  "category": "print",
+  "tips": [
+    "Check CUPS queue pauses (`lpstat -p`) before reinstalling drivers.",
+    "USB sleep can drop printers — test immediately after wake from sleep.",
+    "`lpstat -p` shows whether the printer is accepting jobs.",
+    "Clear stuck jobs with `cancel -a` only after confirming the queue is paused.",
+    "AirPrint / network printers need reachable IP and open port 631."
+  ],
+  "relatedCauses": [
+    "Printer Offline",
+    "Driver Timeout",
+    "CUPS Queue Paused",
+    "USB Printer Sleep",
+    "Network Printer Unreachable"
+  ],
+  "keywords": [
+    "printer", "print", "cups", "queue", "spool", "laserjet", "offline", "lpstat", "airprint"
+  ]
+}

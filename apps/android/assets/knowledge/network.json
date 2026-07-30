@@ -1,11 +1,24 @@
 {
   "id": "network-basics",
-  "title": "Network diagnostics pack",
-  "version": 1,
+  "title": "Network diagnostics",
+  "version": 2,
+  "category": "network",
   "tips": [
-    "Confirm link status before DHCP assumptions.",
-    "Compare ping to gateway vs public IP to separate LAN vs WAN.",
-    "VPN clients often steal default routes — check utun interfaces."
+    "Confirm link status (ifconfig / media) before assuming DHCP failure.",
+    "Compare ping to gateway vs a public IP to separate LAN vs WAN problems.",
+    "VPN clients often steal the default route — inspect utun interfaces.",
+    "Renew DHCP with `sudo ipconfig set en0 DHCP` after confirming physical link.",
+    "nslookup failure with working ping to 8.8.8.8 points to DNS, not routing."
   ],
-  "relatedCauses": ["DHCP Failure", "DNS Failure", "VPN Route Corruption", "Interface Down"]
+  "relatedCauses": [
+    "DHCP Failure",
+    "DNS Failure",
+    "VPN Route Corruption",
+    "Interface Down",
+    "Network Preference Corruption",
+    "Firewall Block"
+  ],
+  "keywords": [
+    "wifi", "wi-fi", "no internet", "no ip", "dhcp", "dns", "vpn", "route", "en0", "gateway"
+  ]
 }

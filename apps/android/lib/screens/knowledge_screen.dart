@@ -10,6 +10,7 @@ class KnowledgePack {
     required this.id,
     required this.title,
     required this.version,
+    required this.category,
     required this.tips,
     required this.relatedCauses,
   });
@@ -17,6 +18,7 @@ class KnowledgePack {
   final String id;
   final String title;
   final int version;
+  final String category;
   final List<String> tips;
   final List<String> relatedCauses;
 
@@ -25,6 +27,7 @@ class KnowledgePack {
       id: (j['id'] as String?) ?? fallbackId,
       title: (j['title'] as String?) ?? fallbackId,
       version: (j['version'] as num?)?.toInt() ?? 1,
+      category: (j['category'] as String?) ?? 'general',
       tips: (j['tips'] as List?)?.map((e) => '$e').toList() ?? const [],
       relatedCauses:
           (j['relatedCauses'] as List?)?.map((e) => '$e').toList() ?? const [],
@@ -44,8 +47,14 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
   String? _error;
   List<KnowledgePack> _packs = [];
 
+  /// Keep in sync with files under assets/knowledge/
   static const _assetPaths = [
     'assets/knowledge/network.json',
+    'assets/knowledge/print.json',
+    'assets/knowledge/power.json',
+    'assets/knowledge/storage.json',
+    'assets/knowledge/display.json',
+    'assets/knowledge/usb.json',
   ];
 
   @override
@@ -113,7 +122,8 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
                       child: CrystalCard(
                         child: Text(
                           _error!,
-                          style: const TextStyle(color: Colors.orangeAccent, fontSize: 12),
+                          style: const TextStyle(
+                              color: Colors.orangeAccent, fontSize: 12),
                         ),
                       ),
                     ),
@@ -149,21 +159,23 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
                                   StatusPill('v${p.version}', icon: Icons.tag),
                                 ],
                               ),
-                              if (p.relatedCauses.isNotEmpty) ...[
-                                const SizedBox(height: 10),
-                                Wrap(
-                                  spacing: 6,
-                                  runSpacing: 6,
-                                  children: p.relatedCauses
-                                      .map((c) => ChipLabel(
-                                            c,
-                                            icon: Icons.hub_outlined,
-                                          ))
-                                      .toList(),
-                                ),
-                              ],
+                              const SizedBox(height: 6),
+                              Wrap(
+                                spacing: 6,
+                                runSpacing: 6,
+                                children: [
+                                  ChipLabel(p.category, icon: Icons.category_outlined),
+                                  ...p.relatedCauses.take(4).map(
+                                        (c) => ChipLabel(
+                                          c,
+                                          icon: Icons.hub_outlined,
+                                        ),
+                                      ),
+                                ],
+                              ),
                               const SizedBox(height: 12),
-                              const SectionTitle('Tips', icon: Icons.lightbulb_outline),
+                              const SectionTitle('Tips',
+                                  icon: Icons.lightbulb_outline),
                               ...p.tips.map(
                                 (t) => Padding(
                                   padding: const EdgeInsets.only(bottom: 8),

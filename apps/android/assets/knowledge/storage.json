@@ -1,0 +1,23 @@
+{
+  "id": "storage-basics",
+  "title": "Storage & disk diagnostics",
+  "version": 1,
+  "category": "storage",
+  "tips": [
+    "`df -h` shows volume free space; Local Snapshots can hide reclaimable space.",
+    "Purge Time Machine local snapshots with `tmutil thinlocalsnapshots / 10000000000 4`.",
+    "SMART warnings from diskutil or system_profiler indicate impending drive failure.",
+    "External volumes that won't mount often need First Aid in Disk Utility first.",
+    "I/O errors in Console.app frequently point to failing media or bad cables."
+  ],
+  "relatedCauses": [
+    "Disk Space Critical",
+    "APFS Snapshot Bloat",
+    "SMART Failure Warning",
+    "External Volume Mount Failure",
+    "Disk I/O Error"
+  ],
+  "keywords": [
+    "disk", "storage", "space", "full", "apfs", "snapshot", "smart", "mount", "volume", "external drive"
+  ]
+}
