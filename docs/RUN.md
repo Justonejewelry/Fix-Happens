@@ -21,6 +21,7 @@ You should see the Liquid Glass **Case Workspace** window.
 Troubleshooting:
 - If the window is blank, check the terminal for Electron errors.
 - `npm start` must be run from the **repo root** (where `package.json` lives).
+- Error map: **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)**
 
 ---
 
@@ -66,6 +67,16 @@ flutter run
 ```
 
 You should see the **open cases** list → tap a case → workspace with evidence, hypotheses, verification, and photo capture.
+
+### When something fails
+
+```bash
+cd apps/android
+chmod +x tool/diagnose.sh && ./tool/diagnose.sh
+flutter run -v 2>&1 | tee /tmp/fix-happens-flutter.log
+```
+
+Then match the error text in **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)**.
 
 ---
 
