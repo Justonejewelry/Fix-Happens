@@ -35,9 +35,13 @@ test('loads all high-value plugins', () => {
     'power-sleep',
     'storage-disk',
     'display-graphics',
-    'usb-peripheral'
+    'usb-peripheral',
+    'network-scan-map'
   ];
-  assert.ok(loaded.length >= expected.length, `expected >= ${expected.length} plugins, got ${loaded.length}`);
+  assert.ok(
+    loaded.length >= expected.length,
+    `expected >= ${expected.length} plugins, got ${loaded.length}`
+  );
   for (const id of expected) {
     assert.ok(loaded.some((p) => p.id === id), `missing plugin: ${id}`);
   }
@@ -86,14 +90,52 @@ test('power-sleep plugin responds to sleep keywords', () => {
   assert.ok(power.hypotheses.length >= 1 || power.tips.length >= 1);
 });
 
-test('knowledge packs load (6 domains)', () => {
+test('network-scan-map responds to ARP / topology evidence', () => {
+  registry.clear();
+  loadPlugins(path.join(__dirname, '..', 'plugins'), { platform: 'darwin' });
+  const results = runAll({
+    symptom: 'Need network map of office LAN',
+    evidence: ['arp table almost empty', 'unknown subnet', 'traceroute times out'],
+    platform: 'macos'
+  });
+  const scan = results.find((r) => r.pluginId === 'network-scan-map');
+  assert.ok(scan, 'network-scan-map missing from results');
+  assert.ok(scan.hypotheses.length >= 1, 'expected scan hypotheses');
+  assert.ok(scan.nextTests.length >= 1, 'expected next tests');
+  assert.ok(
+    scan.hypotheses.some((h) =>
+      /Host Discovery|Subnet Topology|Path|Routing/i.test(h.cause)
+    ),
+    'expected discovery/topology/path hypothesis'
+  );
+});
+
+test('network-scan-map responds to port / mDNS evidence', () => {
+  registry.clear();
+  loadPlugins(path.join(__dirname, '..', 'plugins'), { platform: 'darwin' });
+  const results = runAll({
+    symptom: 'Cannot reach printer service',
+    evidence: ['port 631 filtered', 'mdns not browsing', 'bonjour fails'],
+    platform: 'macos'
+  });
+  const scan = results.find((r) => r.pluginId === 'network-scan-map');
+  assert.ok(scan);
+  assert.ok(
+    scan.hypotheses.some((h) => /Port|mDNS|Discovery/i.test(h.cause)),
+    'expected port or mDNS hypothesis'
+  );
+});
+
+test('knowledge packs load (7 domains)', () => {
   const { packs, errors } = loadAll();
-  assert.ok(packs.length >= 6, `expected >= 6 packs, got ${packs.length}`);
+  assert.ok(packs.length >= 7, `expected >= 7 packs, got ${packs.length}`);
   assert.strictEqual(errors.length, 0, JSON.stringify(errors));
   const net = loadKnowledgePack('network');
   assert.ok(net.tips.length >= 1);
   assert.ok(net.relatedCauses.length >= 1);
   assert.ok(Array.isArray(net.keywords));
+  const scanPack = loadKnowledgePack('network-scan');
+  assert.ok(scanPack.tips.length >= 1);
 });
 
 test('getRelevantTips matches network context', () => {
@@ -103,6 +145,17 @@ test('getRelevantTips matches network context', () => {
   });
   assert.ok(tips.length >= 1, 'expected relevant network tips');
   assert.ok(tips.every((t) => t.tip && t.packId));
+});
+
+test('getRelevantTips matches scan/map context', () => {
+  const tips = getRelevantTips({
+    symptom: 'Map the LAN',
+    evidence: ['arp empty', 'traceroute', 'vlan']
+  });
+  assert.ok(tips.length >= 1, 'expected relevant scan tips');
+  assert.ok(
+    tips.some((t) => /scan|map|arp|vlan|topology/i.test(t.packTitle + t.tip))
+  );
 });
 
 test('getRelevantTips matches printer context', () => {

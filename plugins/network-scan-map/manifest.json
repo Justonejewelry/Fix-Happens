@@ -1,0 +1,10 @@
+{
+  "id": "network-scan-map",
+  "name": "Network Scan & Mapping",
+  "version": "1.0.0",
+  "entryPoint": "index.js",
+  "supportedPlatforms": ["macos", "android"],
+  "permissions": ["network.read"],
+  "capabilities": ["suggest"],
+  "description": "Host discovery, subnet topology, path mapping, port reachability, mDNS, and wireless survey suggestions"
+}

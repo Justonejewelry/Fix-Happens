@@ -50,6 +50,7 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
   /// Keep in sync with files under assets/knowledge/
   static const _assetPaths = [
     'assets/knowledge/network.json',
+    'assets/knowledge/network-scan.json',
     'assets/knowledge/print.json',
     'assets/knowledge/power.json',
     'assets/knowledge/storage.json',
@@ -164,7 +165,8 @@ class _KnowledgeScreenState extends State<KnowledgeScreen> {
                                 spacing: 6,
                                 runSpacing: 6,
                                 children: [
-                                  ChipLabel(p.category, icon: Icons.category_outlined),
+                                  ChipLabel(p.category,
+                                      icon: Icons.category_outlined),
                                   ...p.relatedCauses.take(4).map(
                                         (c) => ChipLabel(
                                           c,

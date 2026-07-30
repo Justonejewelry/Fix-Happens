@@ -1,0 +1,40 @@
+{
+  "id": "network-scan",
+  "title": "Network scan & mapping",
+  "version": 1,
+  "category": "network",
+  "tips": [
+    "Baseline every map from local IP + mask + default gateway before scanning peers.",
+    "Sparse ARP often means quiet hosts or ICMP filter — directed pings fill the table.",
+    "Separate host-down (no ARP) from port-filtered (host up, service closed) in your notes.",
+    "mDNS and AirPrint break across VLANs and with AP client isolation — map L2 first.",
+    "For Wi-Fi failures capture SSID, BSSID, channel, and RSSI at the problem desk.",
+    "Duplicate IP shows as flapping MAC in ARP or conflicting gratuitous ARP replies."
+  ],
+  "relatedCauses": [
+    "Incomplete Host Discovery",
+    "Unknown Subnet Topology",
+    "Path / Routing Anomaly",
+    "Port / Service Unreachable",
+    "mDNS / Local Discovery Failure",
+    "VLAN / L2 Isolation",
+    "Wireless Coverage / RF Issue",
+    "Duplicate IP Address"
+  ],
+  "keywords": [
+    "scan",
+    "map",
+    "arp",
+    "traceroute",
+    "nmap",
+    "subnet",
+    "topology",
+    "mdns",
+    "bonjour",
+    "vlan",
+    "survey",
+    "port",
+    "neighbor",
+    "discover"
+  ]
+}

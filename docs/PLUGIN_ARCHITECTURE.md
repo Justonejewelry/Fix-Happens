@@ -38,11 +38,12 @@ Plugins **must not** execute shell commands. They return soft suggestions only.
 4. Register in `pluginRegistry`
 5. Execute via `pluginExecutor.runAll(context)`
 
-### Shipped plugins (v1)
+### Shipped plugins
 
 | ID | Domain |
 |----|--------|
 | `example-network` | Network (DHCP, DNS, VPN) |
+| `network-scan-map` | Host discovery, topology, path, ports, mDNS, VLAN, wireless survey |
 | `printer-diagnostics` | CUPS / queues / offline printers |
 | `power-sleep` | Sleep, wake, battery, clamshell |
 | `storage-disk` | Disk space, APFS, SMART, external volumes |
@@ -90,6 +91,7 @@ JSON files under `knowledge/` (mirrored to `apps/android/assets/knowledge/`).
 | File | Domain |
 |------|--------|
 | `network.json` | Wi-Fi / DHCP / DNS / VPN |
+| `network-scan.json` | Scan / map / ARP / traceroute / VLAN / survey |
 | `print.json` | Printers / CUPS |
 | `power.json` | Sleep / battery / clamshell |
 | `storage.json` | Disk space / APFS / SMART |
