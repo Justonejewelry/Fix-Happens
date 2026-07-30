@@ -1,12 +1,14 @@
 {
   "name": "fix-happens",
-  "version": "0.8.7",
+  "version": "1.0.0",
   "description": "Shit breaks. Fix Happens. Cross-platform field diagnostic system for macOS (Electron) and Android (Flutter): structured cases, evidence, ranked hypotheses, verification checklists, offline-first field workflow, Clear Crystal Liquid Glass UI.",
   "main": "apps/macos/main.js",
   "scripts": {
     "start": "electron .",
     "macos": "electron .",
-    "dev": "electron ."
+    "dev": "electron .",
+    "test": "node core/diagnosticEngine.test.js",
+    "test:core": "node core/diagnosticEngine.test.js"
   },
   "devDependencies": {
     "electron": "^33.2.0"
